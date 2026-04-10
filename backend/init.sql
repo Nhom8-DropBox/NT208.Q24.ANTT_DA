@@ -7,7 +7,7 @@ CREATE TABLE users (
 
 CREATE TABLE files (
     id SERIAL PRIMARY KEY,
-    owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- user_id is email--
     name VARCHAR(255) NOT NULL,
     mime_type VARCHAR(100),
     deleted_at TIMESTAMP,
