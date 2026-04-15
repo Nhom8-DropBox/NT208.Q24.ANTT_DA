@@ -1,14 +1,14 @@
 const API_URL = "http://localhost:3000";
 const loginform = document.querySelector("form");
-const emailInput = document.getElementById("email");
+const emailInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 
 loginform.addEventListener("submit", async (event) => {
     event.preventDefault(); // block reload page when submit form
-
+    
     const formdata = 
     {
-        email: emailInput.value,
+        user_email: emailInput.value,
         password: passwordInput.value
     };
 
