@@ -21,10 +21,10 @@ loginform.addEventListener("submit", async (event) => {
             body: JSON.stringify(formdata)
         });
         
-        const result = await response.json();
-
         if(response.ok)
         {
+            const result = await response.json();
+            
             console.log("Login successful, token:", result.token);
 
             localStorage.setItem("token", result.token);
