@@ -5,7 +5,7 @@ import pool from "../db.js";
 
 const authController = {
     register: async (req, res) => {
-        const { user_email, password} = req.body;
+        const {user_email,password} = req.body;
 
         try {
             const email = await pool.query(
@@ -19,7 +19,7 @@ const authController = {
             }
         
             const hashedPassword = await bcrypt.hash(password, 10);
-
+            
             await pool.query(
                 "INSERT INTO users (email, password_hash) VALUES ($1, $2)",
                 [user_email, hashedPassword]
@@ -29,7 +29,7 @@ const authController = {
         }
         catch (err)
         {
-            console.log('Error register!');
+            console.log('Error register!', err);
             res.status(500).json({ message: 'Server error' });
         }
     },
