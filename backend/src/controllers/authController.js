@@ -22,7 +22,7 @@ const authController = {
 
             await pool.query(
                 "INSERT INTO users (email, password_hash) VALUES ($1, $2)",
-                [email, hashedPassword]
+                [user_email, hashedPassword]
             )
 
             res.status(201).json({ message: 'User registered successfully' });

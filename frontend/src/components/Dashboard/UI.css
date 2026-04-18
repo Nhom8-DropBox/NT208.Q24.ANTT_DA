@@ -1,0 +1,22 @@
+:root {
+    --bg-primary: #ffebf0;
+    --text-primary: #7f1d1d;
+
+    --accent-primary: #ff8da1;
+    --border-color: #7f1d1d;
+}
+
+.Dashboard-Container {
+    font-family: 'Quicksand', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+
+}
+
+.Dashboard-Container .main-page {
+    display: flex;
+    height: 100vh;
+    background-color: rgba(255, 235, 240, 0.8);
+
+}
