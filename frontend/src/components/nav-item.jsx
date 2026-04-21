@@ -1,4 +1,4 @@
-import './button.css';
+import '../styles/button.css';
 function NavItem({icon, text, link, active})
 {
     return(

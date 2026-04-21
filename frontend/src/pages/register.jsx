@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom'
-import './register.css';
+import '../styles/register.css';
 
 const API_URL = 'http://localhost:3000';
 

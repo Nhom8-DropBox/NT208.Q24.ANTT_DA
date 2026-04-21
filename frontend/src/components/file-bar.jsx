@@ -1,4 +1,4 @@
-import './file.css';
+import '../styles/file.css';
 
 function FileBar({ Name, Owner, Date, Size, Icon }) {
     return (

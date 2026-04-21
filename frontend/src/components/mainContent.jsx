@@ -1,8 +1,11 @@
-import iconBtn from "../buttons/icon-btn";
-import Files from "../file-display/file-bar.jsx";
-import './mainContent.css';
+import IconBtn from "./icon-btn";
+import Files from "./file-bar.jsx";
+import { useToggle } from "../hooks/useToggle.js";
+import ProfilePopUp from "./profile-popup.jsx";
+import '../styles/mainContent.css';
 
 function MainContent() {
+    const {isOpen, open, close} = useToggle();
     return (
         <main className="main-content">
 
@@ -14,12 +17,14 @@ function MainContent() {
                 </div>
 
                 <div className="header-actions">
-                    {iconBtn({icon: 'offline_pin', title: 'Offline preview', onClick: () => {}})}
-                    {iconBtn({icon: 'help', title: 'Help', onClick: () => {}})}
-                    {iconBtn({icon: 'settings', title: 'Settings', onClick: () => {}})}
-                    <div className="profile-pic">
+                    <IconBtn icon="offline_pin" title="Offline preview" />
+                    <IconBtn icon="help" title="Help" />
+                    {IconBtn({icon: 'settings', title: 'Settings', onClick: () => {}})}
+                    <div className="profile-pic" onClick={open}>
                         <span>AN</span>
+
                     </div>
+                    < ProfilePopUp isOpen={isOpen} onClose={close} />
                 </div>
             </header>
 

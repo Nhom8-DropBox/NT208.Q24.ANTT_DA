@@ -1,10 +1,10 @@
 import React from 'react'
 import './index.css'
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
-import LoginForm from '/src/components/login/loginForm.jsx'
-import Register from '/src/components/register/register.jsx'
-import Dashboard from '/src/components/Dashboard/Dashboard.jsx'
-
+import LoginForm from '/src/pages/loginForm.jsx'
+import Register from '/src/pages/register.jsx'
+import Dashboard from '/src/pages/Dashboard.jsx'
+import Profile from '/src/components/profile-popup.jsx'
 
 function App() {
 
@@ -13,7 +13,7 @@ function App() {
         <Routes>
           <Route path="/login" element={< LoginForm />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/Dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
         </Routes>
       </Router>
 

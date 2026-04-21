@@ -1,6 +1,6 @@
-import MainContent from "../maincontent/mainContent";
-import Sidebar from "../sidebar/sidebar";
-import './UI.css';
+import MainContent from "../components/mainContent";
+import Sidebar from "../components/sideBar";
+import '../styles/UI.css';
 function Dashboard() {
     return (
         <div className="Dashboard-Container">
