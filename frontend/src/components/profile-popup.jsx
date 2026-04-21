@@ -1,14 +1,26 @@
 import '../styles/profile.css'
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useClickOutside } from '../hooks/useClickOutside';
 
 function ProfilePopUp({isOpen, onClose}){
 
 	const popupRef = useRef(null);
+	const navigate = useNavigate();
 
 	useClickOutside(popupRef, () => {
         if (isOpen) onClose();
     });
+
+	const handleLogout = () => {
+		localStorage.removeItem("token");
+
+		onClose();
+
+		navigate('/login', {replace: true});
+
+		console.log("Đăng Xuất Thành Công!")
+	}
 
 	return(
 		 <div className={`profile-popup ${isOpen ? 'active' : ''}`} ref={popupRef}>
@@ -41,7 +53,7 @@ function ProfilePopUp({isOpen, onClose}){
                         
                         <div className="title">Hi, An!</div>
             
-                            <button className="logout" onClick={onClose}>LOG OUT</button>
+                            <button className="logout" onClick={handleLogout}>LOG OUT</button>
     
 
                         <div className="info-box">
