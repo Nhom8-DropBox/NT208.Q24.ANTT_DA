@@ -169,6 +169,10 @@
     margin-top: 12px;
 }
 
+.logout:hover {
+	color: var(--retro-pink);
+	background-color: rgba(255, 255, 255, 0.89);
+}
 
 .profile-popup .info-box {
     width: 100%;
