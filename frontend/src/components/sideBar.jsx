@@ -1,9 +1,12 @@
 import {useState} from 'react';
-import './sidebar.css';
-import navItem from '../buttons/nav-item.jsx';
-import logo from '../../assets/nova_logo.png';
+import '../styles/sidebar.css';
+import navItem from './nav-item.jsx';
+import logo from '../assets/nova_logo.png';
+import {useFileUpload} from '../hooks/useFileUpload';
 
 function SideBar(){
+    const {fileInputRef, selectedFile, handleTrigger, handleFileChange} = useFileUpload();
+
     return(
         <aside className="sidebar">
             <div className="brand">
@@ -11,10 +14,12 @@ function SideBar(){
                 <span className="brand-text">Sakura Cloud</span>
             </div>
 
-            <button className="btn-new">
+            <button className="btn-new" onClick={handleTrigger}> 
                 <span className="material-symbols-rounded">add</span>
                 New
             </button>
+
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} style= {{display: 'none'}}/>
 
             <nav className="sidebar-nav">
                 {navItem({icon: 'home', text: 'Home', link: '#', active: true})}

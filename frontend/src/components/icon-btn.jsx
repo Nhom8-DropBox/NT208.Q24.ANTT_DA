@@ -1,4 +1,4 @@
-import './button.css';
+import '../styles/button.css';
 function iconBtn({icon, title, onClick}) {
 
     return(
