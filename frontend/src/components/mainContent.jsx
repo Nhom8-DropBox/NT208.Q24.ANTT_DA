@@ -4,7 +4,7 @@ import { useToggle } from "../hooks/useToggle.js";
 import ProfilePopUp from "./profile-popup.jsx";
 import '../styles/mainContent.css';
 
-function MainContent() {
+function MainContent({data}) {
     const {isOpen, open, close} = useToggle();
     return (
         <main className="main-content">
