@@ -45,3 +45,9 @@ export const useFileUpload = () => {
         handleFileChange
     };
 };
+
+export const useProfile = () =>{
+    const handleTrigger = () => {
+        
+    }
+}
