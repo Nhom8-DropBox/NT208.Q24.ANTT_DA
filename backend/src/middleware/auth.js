@@ -12,16 +12,17 @@ const middlewareAuth = (req, res, next) =>
     if(!authHeader) // không có token
     {
         return res.status(401).json
-        {
-            message: "Empty token!";
-        }
+        ({
+            message: "Empty token!"
+        });
     }
 
     const token = authHeader.split(" ")[1];
-
+    //console.log(token);
     try
     {
-        const decoded = authHeader.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        //console.log(decoded);
 
         //req.user = decoded;
 
@@ -30,9 +31,9 @@ const middlewareAuth = (req, res, next) =>
     catch(err)
     {
         return res.status(403).json
-        {
-            message: "Invalid token!";
-        }
+        ({
+            message: "Invalid token!"
+        });
     }
 };
 

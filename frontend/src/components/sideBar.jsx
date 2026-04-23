@@ -4,7 +4,7 @@ import navItem from './nav-item.jsx';
 import logo from '../assets/nova_logo.png';
 import {useFileUpload} from '../hooks/useFileUpload';
 
-function SideBar(){
+function SideBar({data}){
     const {fileInputRef, selectedFile, handleTrigger, handleFileChange} = useFileUpload();
 
     return(
@@ -33,7 +33,7 @@ function SideBar(){
                     <span className="storage-title">Storage</span>
                 </div>
                 <div className="progress-bar">
-                    <div className="progress" style={{ width: '75%' }}></div>
+                    <div className="progress" id="progress" style={{ width: data?.progress||"0%" }}></div>
                 </div>
                 <div className="storage-info">11.25 GB of 15 GB used</div>
                 <button className="btn-upgrade">Upgrade Storage</button>
