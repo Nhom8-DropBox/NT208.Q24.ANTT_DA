@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import pool from "../db";
+import pool from "../db.js";
 
 const authController = {
     register: async (req, res) =>
@@ -38,7 +38,7 @@ const authController = {
                 [user_email]
             );
             const user = email.rows[0];
-            if (!email)
+            if (!user)
             {
                 return res.status(400).json({message: 'Tài khoản không hợp lệ'});
             }
@@ -67,5 +67,50 @@ const authController = {
         }
     },
 
-    
+    refresh: async (req, res) =>
+    {
+        const {refreshToken} = req.body;
+        if (!refreshToken) 
+        {
+            return res.status(400).json({message: 'No refresh token'});
+        }
+        try
+        {
+            const result = await pool.query(
+                "select * from users where refresh_token = $1",
+                [refreshToken]
+            );
+            if (result.rows.length === 0)
+            {
+                return res.status(401).json({message: 'Invalid refresh token'});
+            }
+
+            const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+            const accessToken = jwt.sign(
+                {userID: decoded.userID},
+                process.env.JWT_SECRET,
+                {expiresIn: '15m'}
+            );
+
+            res.json({accessToken});
+        }
+        catch (err)
+        {
+            console.log('Error', err);
+            res.status(500).json({message: 'Lỗi Server'});
+        }
+    },
+
+    logout: async (req, res) =>
+    {
+        const {refreshToken} = req.body;
+        await pool.query(
+            "update users set refresh_token = NULL where refresh_token = $1",
+            [refreshToken]
+        );
+
+        res.json({message: 'Đăng xuất thành công'});
+    },
 }
+
+export default authController;

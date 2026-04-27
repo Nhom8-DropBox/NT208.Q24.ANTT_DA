@@ -3,7 +3,8 @@ import express from 'express';
 const router = express.Router();
 
 
-router.post('/register', authController.register); // routing to register page and calling the 'register' function in authController
-router.post('/login', authController.login); // routing to login page and calling the 'login' function in authController
-
+router.post('/register', authController.register); 
+router.post('/login', authController.login); 
+router.post('/refresh', authController.refresh);
+router.post('/logout', authController.logout);
 export default router;
