@@ -1,14 +1,14 @@
 import '../styles/profile.css'
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useClickOutside } from '../hooks/useClickOutside';
+import { useClickOutSide } from '../hooks/useClickOutSide';
 
 function ProfilePopUp({isOpen, onClose}){
 
 	const popupRef = useRef(null);
 	const navigate = useNavigate();
 
-	useClickOutside(popupRef, () => {
+	useClickOutSide(popupRef, () => {
         if (isOpen) onClose();
     });
 

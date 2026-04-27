@@ -1,74 +1,71 @@
-//import User from '../models/userModel.js';// import User model
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import pool from "../db.js";
+import pool from "../db";
 
 const authController = {
-    register: async (req, res) => {
-        const {user_email,password} = req.body;
-
+    register: async (req, res) =>
+    {
+        const {user_email, password} = req.body;
         try {
             const email = await pool.query(
-                "SELECT * FROM users WHERE email = $1",
-                [user_email]
+                "select * from users where email = $1", [user_email]
             );
-            
-            if(email.rows.length > 0)
+            if (email.rows.length > 0)
             {
-                return res.status(400).json({ message: 'Username or email already exists' });
+                return res.status(400).json({message: 'Email đã được sử dụng'});
             }
-        
-            const hashedPassword = await bcrypt.hash(password, 10);
-            
+            const hashPassword = await bcrypt.hash(password, 10);
             await pool.query(
-                "INSERT INTO users (email, password_hash) VALUES ($1, $2)",
-                [user_email, hashedPassword]
+                "insert into users (email, password_hash) values ($1, $2)",
+                [user_email, hashPassword]
             )
-
-            res.status(201).json({ message: 'User registered successfully' });
+            res.status(201).json({message: 'Đăng ký thành công'});
         }
         catch (err)
         {
-            console.log('Error register!', err);
-            res.status(500).json({ message: 'Server error' });
+            console.log('Error', err);
+            res.status(500).json({message: 'Lỗi Server'});
         }
     },
 
     login: async (req, res) =>
     {
-        const { user_email, password } = req.body;
-        
-        try {
+        const {user_email, password} = req.body;
+        try
+        {
             const email = await pool.query(
-                "SELECT * FROM users WHERE email = $1",
+                "select * from users where email = $1",
                 [user_email]
-            )
-
+            );
             const user = email.rows[0];
-
-            if(!user)
+            if (!email)
             {
-                return res.status(400).json({message: 'Invalid email or password' }); // Email is not found in db
+                return res.status(400).json({message: 'Tài khoản không hợp lệ'});
             }
-
             const passwordMatch = await bcrypt.compare(password, user.password_hash);
+            const accessToken = jwt.sign(
+                {userID: user.id},
+                process.env.JWT_SECRET,
+                {expiresIn: '15m'}
+            );
+            const refreshToken = jwt.sign(
+                {userID: user.id},
+                process.env.JWT_SECRET,
+                {expiresIn: '7d'}
+            );
 
-
-            if(!passwordMatch)
-            {
-                return res.status(400).json({message: 'Invalid email or password' }); // Password does not match
-            }
-
-            const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
-            res.json({token});
+            await pool.query(
+                "update users set refresh_token = $1 where id = $2",
+                [refreshToken, user.id]
+            );
+            res.json({accessToken, refreshToken});
         }
         catch (err)
         {
-            console.log('Error login!', err);
-            res.status(500).json({ message: 'Server error' });
+            console.log('Error', err);
+            res.status(500).json({message: 'Lỗi Server'});
         }
-    }
+    },
 
-};
-
-export default authController;
+    
+}
