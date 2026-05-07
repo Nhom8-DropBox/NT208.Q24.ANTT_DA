@@ -1,5 +1,5 @@
 import pool from "../db.js";
-import createMultipartUpload from "../s3.js";
+import { createMultipartUpload } from "../s3.js";
 
 const fileController = {
   initMultipartUpload: async (req, res) => {
@@ -42,12 +42,6 @@ const fileController = {
         res.status(500).send("Bad Server")
     }
   },
-
-
-  
-
-  
-  
 };
 
 export default fileController;

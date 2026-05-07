@@ -1,5 +1,5 @@
 import pool from '../db.js';
-import { GetPresignedDownloadURL } from '../s3';
+import { GetPresignedDownloadURL } from '../s3.js';
 
 const shareController = {
     createShareLink: async (req, res) => {
@@ -18,7 +18,7 @@ const shareController = {
 
             const token = crypto.randomUUID();
             await pool.query(
-                "insert into share_links (file_id, token_uuid, permission, values ($1, $2, $3, $4)",
+                "insert into share_links (file_id, token_uuid, permission, values ($1, $2, $3, $4))",
                 [fileId, token, permission || 'view', expires_at || null]
             );
             res.status(201).json({
