@@ -2,7 +2,6 @@ import {useState} from 'react';
 import '../styles/sidebar.css';
 import NavItem from './nav-item.jsx';
 import logo from '../assets/nova_logo.png';
-import {useFileUpload} from '../hooks/useFileUpload';
 
 function SideBar({ data, onNewClick, fileInputRef, onFileChange, activeTab, setActiveTab}){
     return(

@@ -1,3 +1,5 @@
+// Logic xử lý upload file từ lúc bấm Button New bên sidebar tới gởi tín hiệu tới backend và các componenet khác
+// import vào dashboard để có thể truyền vào cả sidebar và maincontent - sidebar là nơi kích hoạt isUploading, maincontent dựa vao đó mà hiện thị ô uploadfile và hiển thị các file đã upload 
 import { useRef, useState } from 'react'
 import axios from 'axios';
 
@@ -56,6 +58,7 @@ export const useFileUpload = () => {
                 formData.append("index", i);
                 formData.append("fileId", fileId);
 
+                // API upload file của backend
                 await axios.post("http://localhost:3000/api/upload-chunk", formData, {
                     headers: {
                         "Authorization": `Bearer ${localStorage.getItem('token')}`
@@ -72,7 +75,7 @@ export const useFileUpload = () => {
                 });
             }
 
-            // Gộp file khi xong
+            // Gộp file gọi tới backend
             await axios.post("http://localhost:3000/api/merge", { fileId, fileName: file.name }, {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem('token')}`

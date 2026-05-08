@@ -1,6 +1,6 @@
 import '../styles/file.css';
 import { useToggle } from '../hooks/useToggle';
-import { useClickOutside } from '../hooks/useClickOutside';
+import { useClickOutSide } from '../hooks/useClickOutside';
 import { useRef } from 'react';
 
 function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, onDownload, onShare, onVersoning}) {
@@ -8,7 +8,7 @@ function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, onDownload, onSh
 
     const menuRef = useRef(null);
 
-    useClickOutside(menuRef, close);
+    useClickOutSide(menuRef, close);
 
     const handleMenuClick = (e) => {
         e.stopPropagation();
