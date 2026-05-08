@@ -76,7 +76,7 @@
     border-radius: 12px;
     overflow: hidden;
     position: relative;
-    background: linear-gradient(180deg, var(--retro-grad-top) 0%, var(--retro-grad-bottom) 100%);
+    background: linear-gradient(180deg, #B896F8 0%,  #F6A8D6 100%);
     min-height: 240px;
 }
 
@@ -214,9 +214,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--retro-stroke);
+    color:#42294A;
     font-weight: 800;
-    font-size: 14px;
+    font-size: 18px;
 }
 
 .profile-popup .progress-bar {
