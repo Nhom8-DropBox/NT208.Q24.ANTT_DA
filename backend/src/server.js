@@ -5,7 +5,7 @@ import cors from 'cors';
 import authRoute from "./routes/auth.js";
 import dashboardRoute from "./routes/dashboard.js";
 import middlewareAuth from "./middleware/auth.js";
-import shareRoute from "./controllers/shareController.js"
+import shareRoute from "./routes/shares.js"
 import filesRoute from "./routes/files.js";
 
 const app = express();

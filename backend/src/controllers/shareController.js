@@ -1,5 +1,5 @@
 import pool from '../db.js';
-import { GetPresignedDownloadURL } from '../s3';
+import { GetPresignedDownloadURL } from '../s3.js';
 
 const shareController = {
     createShareLink: async (req, res) => {
