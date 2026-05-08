@@ -3,8 +3,11 @@ import express from "express";
 import "dotenv/config";
 import pool from "./db.js";
 import cors from 'cors';
+import middlewareAuth from "./middleware/auth.js";
 
 import authRoute from "./routes/auth.js";
+
+import dashboardRoute from "./routes/dashboard.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,13 +17,22 @@ app.use(cors());
 // Middleware
 app.use(express.json());
 
+// route
 app.use('/auth', authRoute);
 
-// app.us(auth.js)
 // Test route
+
 app.get("/", (req, res) => {
   res.send("API is running 🚀");
 });
+
+app.use(middlewareAuth); // Apply authentication middleware to all routes after login (have jwt token)
+
+// route cho dashboard
+app.use(`/dashboard`, dashboardRoute);
+
+// app.us(auth.js)
+
 
 // Test DB connection
 // app.get("/db-test", async (req, res) => {
@@ -39,7 +51,14 @@ app.get("/", (req, res) => {
 //     });
 //   }
 // });
-
+pool.connect()
+  .then((client) => {
+    console.log("✅ Database is connected successfully!");
+    client.release(); // Nhả kết nối lại cho Pool
+  })
+  .catch((err) => {
+    console.error("❌ Database connection failed:", err.message);
+  });
 
 // Start server
 app.listen(PORT, () => {

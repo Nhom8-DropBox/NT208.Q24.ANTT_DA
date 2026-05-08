@@ -39,7 +39,7 @@ function LoginForm()
 
                 alert("Đăng nhập thành công!");
 
-                navigate('/dashboard');
+                navigate('/dashboard'); // hook to direct
             }
             else
             {
