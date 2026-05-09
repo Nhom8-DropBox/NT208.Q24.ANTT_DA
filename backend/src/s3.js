@@ -11,7 +11,7 @@ import { CompleteMultipartUploadCommand } from "@aws-sdk/client-s3";
 
 //import download
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
 
 
 
@@ -34,7 +34,7 @@ const s3Client = new S3Client({
 });
 
 
-export async function GetDownloadURL(s3Key) {
+export async function GetPresignedDownloadURL(s3Key) {
     
 }
 

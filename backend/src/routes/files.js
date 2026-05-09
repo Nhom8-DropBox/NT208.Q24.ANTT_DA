@@ -10,7 +10,7 @@ router.post("/upload/part-complete", fileController.confirmUploadPart);
 router.get("/upload/:sessionId/status", fileController.getUploadSessionStatus);
 router.post("/upload/complete", fileController.completeMultipartUpload);
 router.post("/upload/abort", fileController.abortMultipartUpload);
-router.get("/:id/download-url", fileController.getDownloadUrl);
+router.get("/:id/download-url", fileController.GetPresignedDownloadURL);
 
 
 export default router;

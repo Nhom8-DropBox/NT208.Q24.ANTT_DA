@@ -286,7 +286,7 @@ const sessionResult = await pool.query(
   },
 
 
-  getDowloadUrl: async (req,res)=>{
+  GetPresignedDownloadURL: async (req,res)=>{
     const fileId = req.params.id;
     const userId = req.user.userID;
     try {
