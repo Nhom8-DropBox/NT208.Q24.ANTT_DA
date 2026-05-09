@@ -14,10 +14,10 @@ export const fetchWithAuth = async (url, options = {}) => {
                 authorization: "Bearer " + token
             }
         });
-        if(response.status == 401) // token het han
+        if(response.status == 401) 
         {
             localStorage.removeItem("token");
-            location.href = "/auth/login";// redirect (dung js binh thuong, navigate chi dung duoc trong file jsx)
+            location.href = "/auth/login";// Can xem lai
         }
         return response;
     }
