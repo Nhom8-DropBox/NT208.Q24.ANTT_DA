@@ -1,5 +1,5 @@
 import pool from "../db.js";
-import {completeUpload, createMultipartUpload, getPartPresignedUrl} from "../s3.js";
+import {completeUpload, createMultipartUpload, getPartPresignedUrl, GetDownloadURL} from "../s3.js";
 
 const fileController = {
   initMultipartUpload: async (req, res) => {
@@ -266,6 +266,8 @@ const sessionResult = await pool.query(
 
 
 
+
+
         return res.status(200).json({
             success: true,
             sessionId: sessionId,
@@ -307,11 +309,19 @@ const sessionResult = await pool.query(
             });
         }
 
-        if(file.owner_Id != userId){
+        if(file.owner_id !== userId){
             return res.status(403).json({
                 message: "Khong co quyen truy cap file"
             });
         }
+
+        const { downloadURL } = await GetDownloadURL({ key: file.s3_key })
+
+        return res.status(200).json({
+            fileId: file.id,
+            downloadURL: downloadURL
+        });
+
 
         
         

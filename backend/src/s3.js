@@ -34,8 +34,18 @@ const s3Client = new S3Client({
 });
 
 
-export async function GetPresignedDownloadURL(s3Key) {
+export async function GetDownloadURL({ key }) {
+    const command = new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        ResponseContentDisposition: `attachment; filename="note.txt"`,
+
+    });
     
+    const downloadURL = await getSignedUrl(s3Client,command,{
+        expiresIn: 3600
+    });
+    return { downloadURL }
 }
 
 export async function deleteObject(s3Key) {
