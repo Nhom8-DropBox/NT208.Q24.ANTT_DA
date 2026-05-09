@@ -1,6 +1,5 @@
 import pool from "../db.js";
-import {createMultipartUpload, getPartPresignedUrl} from "../s3.js";
-
+import {completeUpload, createMultipartUpload, getPartPresignedUrl} from "../s3.js";
 
 const fileController = {
   initMultipartUpload: async (req, res) => {
@@ -41,6 +40,7 @@ const fileController = {
 
 
     } catch (err){
+        console.log(err)
         return res.status(500).json({
             message: "Bad Server"
         });
@@ -91,6 +91,7 @@ const fileController = {
         })
 
     } catch(err){
+        console.log(err)
         return res.status(500).json({
             message: "Bad Server"
         });
@@ -175,7 +176,7 @@ const sessionResult = await pool.query(
     const userId = req.user.userID;
 
     try {
-        const sessionResult = await pool.querry(
+        const sessionResult = await pool.query(
             `SELECT * FROM upload_sessions WHERE id = $1`,
             [sessionId]
         );
@@ -203,17 +204,17 @@ const sessionResult = await pool.query(
             })
         }
 
-        const partResult = await pool.querry(
+        const partResult = await pool.query(
             `SELECT part_number, etag
             FROM upload_parts
             WHERE upload_session_id = $1
-            ORDER BY part_number ASC`
+            ORDER BY part_number ASC`,
             [sessionId]
         );
 
         const parts = partResult.rows;
 
-        if(partResult.length == 0){
+        if(parts.length == 0){
             return res.status(400).json({
                 message: "Chua co part nao de complete"
             })
@@ -221,9 +222,26 @@ const sessionResult = await pool.query(
 
         const formatPart = parts.map((part)=>({
             PartNumber: part.part_number,
-            Etag: part.etag
+            ETag: part.etag
         }));
 
+        const completeResult = await completeUpload({
+            key: session.s3_key,
+            uploadId: session.s3_upload_id,
+            parts: formatPart
+        })
+
+        await pool.query(
+            `UPDATE upload_sessions
+            SET status = $1
+            WHERE id = $2`,
+            ["completed", sessionId]
+        );
+        return res.status(200).json({
+            success: true,
+            sessionId: sessionId,
+            message: "Multipart upload completed"
+        });
 
 
 

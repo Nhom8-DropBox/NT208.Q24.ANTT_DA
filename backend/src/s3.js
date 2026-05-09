@@ -98,13 +98,21 @@ export async function getPartPresignedUrl({ key, uploadId, partNumber }) {
 
 };
 
-export async function completeMultipartUpload({ key, uploadId, parts }) {
+export async function completeUpload({ key, uploadId, parts }) {
   const command = new CompleteMultipartUploadCommand({
     Bucket: bucket,
     Key: key,
     UploadId: uploadId,
     MultipartUpload: {
-        
+        Parts: parts
     }
-  })
+  });
+
+  const response = await s3Client.send(command);
+
+  return {
+    location: response.Location,
+    etag: response.ETag
+  }
+
 }
