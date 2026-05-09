@@ -1,32 +1,10 @@
- # Runbook Database va Postman
+# RUNBOOK Database va Postman
 
-Tai lieu nay ghi lai cach:
-- chay database Postgres
-- chay MinIO local
-- chay backend
-- test cac request bang Postman theo dung code hien tai
-
-## 1. Dieu kien truoc khi chay
-
-Can co:
-- Docker Desktop da mo va dang running
-- Node.js da cai
-- Da chay `npm install` trong thu muc `backend`
-
-Neu `docker compose up -d` bao loi ve `dockerDesktopLinuxEngine` thi la Docker Desktop chua mo.
-
-## 2. Chay database va MinIO
-
-Tai thu muc goc project:
+## 1. Chay database va MinIO
 
 ```powershell
 cd C:\Users\Admin\Desktop\NT208.Q24.ANTT_DA
 docker compose up -d
-```
-
-Kiem tra container:
-
-```powershell
 docker ps
 ```
 
@@ -34,83 +12,30 @@ Mong doi thay:
 - `cloud_storage_db`
 - `minio_local`
 
-Neu can xem log:
+MinIO:
+- API: `http://localhost:9000`
+- Console: `http://localhost:9001`
+- User: `minioadmin`
+- Password: `minioadmin123`
+- Bucket: `cloud-storage`
 
-```powershell
-docker compose logs postgres
-docker compose logs minio
-```
-
-## 3. Thong tin ket noi
-
-### Postgres
-
+Postgres:
 - Host: `localhost`
 - Port: `5432`
 - Database: `cloud_storage`
 - User: `postgres`
 - Password: `postgres`
 
-### MinIO
-
-- API: `http://localhost:9000`
-- Console: `http://localhost:9001`
-- User: `minioadmin`
-- Password: `minioadmin123`
-- Bucket dang dung: `cloud-storage`
-
-Neu bucket chua co:
-1. Mo `http://localhost:9001`
-2. Dang nhap MinIO
-3. Tao bucket `cloud-storage`
-
-## 4. Chay backend
+## 2. Chay backend
 
 ```powershell
 cd C:\Users\Admin\Desktop\NT208.Q24.ANTT_DA\backend
+npm install
 npm run dev
 ```
 
-Neu chay duoc, backend se len:
+## 3. Register
 
-```text
-Server running on http://localhost:3000
-```
-
-## 5. Xem database bang psql
-
-Vao psql:
-
-```powershell
-docker exec -it cloud_storage_db psql -U postgres -d cloud_storage
-```
-
-Thoat:
-
-```sql
-\q
-```
-
-Query nhanh khong vao interactive shell:
-
-```powershell
-docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT * FROM users;"
-```
-
-## 6. Bang quan trong trong do an
-
-Duoc tao tu [backend/init.sql](c:/Users/Admin/Desktop/NT208.Q24.ANTT_DA/backend/init.sql):
-
-- `users`
-- `files`
-- `file_versions`
-- `upload_sessions`
-- `upload_parts`
-- `share_links`
-
-## 7. Register bang Postman
-
-Request:
 - Method: `POST`
 - URL: `http://localhost:3000/auth/register`
 
@@ -129,23 +54,8 @@ Body:
 }
 ```
 
-Response thanh cong:
+## 4. Login
 
-```json
-{
-  "message": "Dang ky thanh cong"
-}
-```
-
-Kiem tra user trong DB:
-
-```powershell
-docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT id, email, created_at FROM users ORDER BY id;"
-```
-
-## 8. Login bang Postman
-
-Request:
 - Method: `POST`
 - URL: `http://localhost:3000/auth/login`
 
@@ -164,7 +74,7 @@ Body:
 }
 ```
 
-Response thanh cong:
+Response:
 
 ```json
 {
@@ -173,33 +83,51 @@ Response thanh cong:
 }
 ```
 
-Luu `accessToken` de dung cho cac request can dang nhap.
+## 5. Refresh access token
 
-## 9. Header Authorization cho request co auth
+- Method: `POST`
+- URL: `http://localhost:3000/auth/refresh`
 
-Voi cac API duoi `/files` va `/auth/profile`, them:
+Headers:
+
+```text
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "refreshToken": "refresh_token_nhan_duoc_tu_login"
+}
+```
+
+Response:
+
+```json
+{
+  "accessToken": "access_token_moi"
+}
+```
+
+## 6. Header auth cho request `/files`
 
 ```text
 Authorization: Bearer <accessToken>
 ```
 
-## 10. Test profile
+## 7. Upload init
 
-Request:
-- Method: `GET`
-- URL: `http://localhost:3000/auth/profile`
+Dang test bang file notepad, vi du `note.txt`.
 
-Header:
+De test 2 part hop le:
+- tong file > `5MB`
+- part 1 = `5MB`
+- part 2 = phan con lai
 
-```text
-Authorization: Bearer <accessToken>
-```
+Vi du file tong la `6.5MB`:
+- `sizeBytes = 6815744`
 
-## 11. Upload init
-
-Endpoint nay tao multipart session trong MinIO va luu vao bang `upload_sessions`.
-
-Request:
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/init`
 
@@ -214,17 +142,12 @@ Body:
 
 ```json
 {
-  "filename": "video.mp4",
-  "mimeType": "video/mp4",
-  "sizeBytes": 12345678,
+  "filename": "note.txt",
+  "mimeType": "text/plain",
+  "sizeBytes": 6815744,
   "fileId": null
 }
 ```
-
-Luu y:
-- Phai la `filename`, khong phai `Filename`
-- Neu gui `fileId` khong ton tai trong bang `files`, backend se loi khoa ngoai
-- De test flow upload moi, co the gui `fileId: null`
 
 Response mong doi:
 
@@ -232,23 +155,16 @@ Response mong doi:
 {
   "sessionId": 8,
   "uploadId": "...",
-  "s3Key": "users/1/files/....-video.mp4",
+  "s3Key": "users/1/files/....-note.txt",
   "chunkSize": 5242880,
-  "totalParts": 3,
+  "totalParts": 2,
   "expiresAt": "...",
   "message": "..."
 }
 ```
 
-Kiem tra DB sau request thanh cong:
+## 8. part-url cho part 1
 
-```powershell
-docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT id, owner_id, file_id, filename, s3_upload_id, s3_key, chunk_size, status, expires_at, created_at FROM upload_sessions ORDER BY id DESC LIMIT 5;"
-```
-
-## 12. Lay part URL
-
-Request:
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/part-url`
 
@@ -268,51 +184,24 @@ Body:
 }
 ```
 
-Response mong doi:
+## 9. PUT part 1 len MinIO
 
-```json
-{
-  "sessionId": 8,
-  "partNumber": 1,
-  "uploadUrl": "http://localhost:9000/..."
-}
-```
-
-Luu y:
-- Neu bao `session da het han`, co nghia la session upload het han, khong phai access token het han
-- Neu vua tao session xong thi phai dung `sessionId` moi nhat tu buoc `upload/init`
-
-## 13. PUT part that len MinIO
-
-Tao request moi trong Postman:
 - Method: `PUT`
 - URL: dan nguyen gia tri `uploadUrl`
 
 Body:
 - chon `binary`
-- chon file that de upload
+- chon file `part1.txt` hoac `part1.bin`
 
-Rat quan trong:
-- Tab `Authorization` phai de `No Auth`
-- Khong gui them header `Authorization`
-- Vi `uploadUrl` da chua chu ky san
+Yeu cau:
+- size part 1 = `5242880` bytes
+- `Authorization` tab = `No Auth`
 
-Neu thanh cong thuong se:
-- tra `200 OK`
-- body response rong hoac gan nhu rong
+Sau request nay:
+- lay `ETag` trong response headers
 
-Can lay `ETag` trong tab `Headers` cua response.
+## 10. part-complete cho part 1
 
-Luu y:
-- Sau buoc nay, file thuong chua hien trong MinIO Object Browser
-- Vi day moi la upload part, object chi hien sau khi `complete multipart upload`
-
-## 14. Xac nhan part upload xong
-
-Endpoint hien tai da duoc implement trong backend:
-- `POST /files/upload/part-complete`
-
-Request:
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/part-complete`
 
@@ -323,135 +212,114 @@ Content-Type: application/json
 Authorization: Bearer <accessToken>
 ```
 
-Body mau:
+Body:
 
 ```json
 {
   "sessionId": 8,
   "partNumber": 1,
-  "etag": "\"gia-tri-etag-tu-response-header\"",
-  "sizeBytes": 12345
+  "etag": "\"ETAG_PART_1\"",
+  "sizeBytes": 5242880
 }
 ```
 
-Response mong doi:
+## 11. part-url cho part 2
+
+- Method: `POST`
+- URL: `http://localhost:3000/files/upload/part-url`
+
+Headers:
+
+```text
+Content-Type: application/json
+Authorization: Bearer <accessToken>
+```
+
+Body:
 
 ```json
 {
-  "success": true,
   "sessionId": 8,
-  "partNumber": 1,
-  "message": "Da upload thanh cong"
+  "partNumber": 2
 }
 ```
 
-Kiem tra bang `upload_parts`:
+## 12. PUT part 2 len MinIO
 
-```powershell
-docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT id, upload_session_id, part_number, etag, size_bytes FROM upload_parts ORDER BY id DESC;"
-```
+- Method: `PUT`
+- URL: dan nguyen gia tri `uploadUrl`
 
-## 15. Vi sao MinIO chua thay file trong bucket
+Body:
+- chon `binary`
+- chon file `part2.txt` hoac `part2.bin`
 
-Neu da `PUT` part thanh cong ma trong MinIO Object Browser chua thay file, day la binh thuong.
+Yeu cau:
+- part 2 la part cuoi, co the nho hon `5MB`
+- `Authorization` tab = `No Auth`
 
-Ly do:
-- Ban moi upload tung part
-- Chua goi buoc `complete multipart upload`
-- Object cuoi cung chi xuat hien sau khi backend goi complete
+Sau request nay:
+- lay `ETag` trong response headers
 
-Hien tai trong code:
-- `part-complete` da co
-- `completeMultipartUpload` chua implement
+## 13. part-complete cho part 2
 
-Nen file chua hien trong bucket la dung voi trang thai hien tai.
+- Method: `POST`
+- URL: `http://localhost:3000/files/upload/part-complete`
 
-## 16. Cac loi thuong gap
-
-### Loi Docker engine
+Headers:
 
 ```text
-open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified
+Content-Type: application/json
+Authorization: Bearer <accessToken>
 ```
 
-Nghia la Docker Desktop chua mo.
-
-### Loi foreign key khi upload init
-
-```text
-violates foreign key constraint "upload_sessions_file_id_fkey"
-```
-
-Nghia la `fileId` gui len khong ton tai trong bang `files`.
-
-De test nhanh:
+Body:
 
 ```json
 {
-  "filename": "video.mp4",
-  "mimeType": "video/mp4",
-  "sizeBytes": 12345678,
-  "fileId": null
+  "sessionId": 8,
+  "partNumber": 2,
+  "etag": "\"ETAG_PART_2\"",
+  "sizeBytes": 1572864
 }
 ```
 
-### Loi session het han
+## 14. Complete upload
 
-Thuong do:
-- dang dung lai `sessionId` cu
-- `expires_at` cua upload session da qua han
+- Method: `POST`
+- URL: `http://localhost:3000/files/upload/complete`
 
-Phai goi lai `upload/init` de lay `sessionId` moi.
-
-### Loi multiple authentication types khi PUT MinIO
-
-Thong bao kieu:
+Headers:
 
 ```text
-Invalid Request (request has multiple authentication types, please use one)
+Content-Type: application/json
+Authorization: Bearer <accessToken>
 ```
 
-Nghia la request `PUT uploadUrl` dang gui them auth header.
+Body:
 
-Sua bang cach:
-- `Authorization` -> `No Auth`
-- xoa header `Authorization`
+```json
+{
+  "sessionId": 8
+}
+```
 
-## 17. Query hay dung de debug
+## 15. Query DB
 
-Xem user:
+Xem users:
 
 ```powershell
 docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT id, email, created_at FROM users ORDER BY id;"
 ```
 
-Xem upload sessions:
+Xem upload_sessions:
 
 ```powershell
 docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT id, owner_id, file_id, filename, s3_upload_id, s3_key, chunk_size, status, expires_at, created_at FROM upload_sessions ORDER BY id DESC;"
 ```
 
-Xem upload parts:
+Xem upload_parts:
 
 ```powershell
 docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT id, upload_session_id, part_number, etag, size_bytes FROM upload_parts ORDER BY id DESC;"
 ```
-
-Xem files:
-
-```powershell
-docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT id, owner_id, name, created_at, deleted_at FROM files ORDER BY id;"
-```
-
-## 18. Trang thai hien tai cua flow upload
-
-Dang chay duoc:
-- `upload/init`
-- `upload/part-url`
-- `PUT uploadUrl` len MinIO
-- `upload/part-complete`
-
-Chua xong:
-- `upload/complete`
-- hien object cuoi cung trong bucket sau complete
 

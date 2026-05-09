@@ -9,6 +9,12 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 //import của complete
 import { CompleteMultipartUploadCommand } from "@aws-sdk/client-s3";
 
+//import download
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+
+
 const endpoint = process.env.MINIO_ENDPOINT;
 const port = process.env.MINIO_PORT;
 const accessKey = process.env.MINIO_ACCESS_KEY;
@@ -28,21 +34,8 @@ const s3Client = new S3Client({
 });
 
 
-export async function GetPresignedDownloadURL(s3Key) {
-    // const AWS = await import("aws-sdk");
-    // const s3 = new AWS.S3({
-    //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    //     region: process.env.AWS_REGION,
-    // });
+export async function GetDownloadURL(s3Key) {
     
-    // const params = {
-    //     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    //     Key: s3Key,
-    //     Expires: 60 * 60, // URL expires in 1 hour
-    // };
-    // return s3.getSignedUrlPromise("getObject", params);
-    return 'https://' + process.env.AWS_S3_BUCKET_NAME + '.s3.' + process.env.AWS_REGION + '.amazonaws.com/' + s3Key;
 }
 
 export async function deleteObject(s3Key) {

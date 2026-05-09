@@ -231,12 +231,41 @@ const sessionResult = await pool.query(
             parts: formatPart
         })
 
+
+        const sizeResult = await pool.query(
+            `SELECT COALESCE(SUM(size_bytes), 0) AS total_size
+            FROM upload_parts
+            WHERE upload_session_id = $1`,
+            [sessionId]
+        );
+
+        const totalSize = sizeResult.rows[0].total_size
+
+
+        const fileResult =  await pool.query(
+            `INSERT INTO files (owner_id, name, mime_type)
+            VALUES ($1, $2, $3)
+            RETURNING id`,
+            [session.owner_id, session.filename, null]
+        );
+
+        const fileId = fileResult.rows[0].id;
+        
+        await pool.query(
+        `INSERT INTO file_versions (file_id, version_no, s3_key, size_bytes, etag)
+        VALUES ($1, $2, $3, $4, $5)`,
+        [fileId, 1, session.s3_key, totalSize, completeResult.etag]
+        );
+
         await pool.query(
             `UPDATE upload_sessions
             SET status = $1
             WHERE id = $2`,
             ["completed", sessionId]
         );
+
+
+
         return res.status(200).json({
             success: true,
             sessionId: sessionId,
@@ -257,7 +286,39 @@ const sessionResult = await pool.query(
   },
 
 
+  getDowloadUrl: async (req,res)=>{
+    const fileId = req.params.id;
+    const userId = req.user.userID;
+    try {
+        
+        const result = await pool.query(
+            `SELECT f.id, f.owner_id, f.name, fv.s3_key
+            FROM files as f
+            JOIN file_versions as fv ON fv.file_id = f.id
+            WHERE f.id = $1 AND f.deleted_at IS NULL`,
+            [fileId]
+        );
 
+        const file = result.rows[0];
+
+        if (!file){
+            return res.status(404).json({
+                message: "Khong tim thay file"
+            });
+        }
+
+        if(file.owner_Id != userId){
+            return res.status(403).json({
+                message: "Khong co quyen truy cap file"
+            });
+        }
+
+        
+        
+    } catch (err) {
+        
+    }
+  },
 
 
 
