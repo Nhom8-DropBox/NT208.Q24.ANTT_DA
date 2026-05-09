@@ -5,6 +5,8 @@ import LoginForm from '/src/pages/loginForm.jsx'
 import Register from '/src/pages/register.jsx'
 import Dashboard from '/src/pages/Dashboard.jsx'
 import Profile from '/src/components/profile-popup.jsx'
+import ShareBoard from './components/share_link'
+import VersionHistory from './components/version_history'
 
 function App() {
 
@@ -15,6 +17,8 @@ function App() {
           <Route path="/login" element={< LoginForm />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<LoginForm />} />
+          <Route path="/share" element={<ShareBoard/>} />
+          <Route path="/versoning" element={<VersionHistory />} />
         </Routes>
       </Router>
 

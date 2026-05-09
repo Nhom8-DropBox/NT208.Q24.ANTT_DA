@@ -1,12 +1,9 @@
 import {useState} from 'react';
 import '../styles/sidebar.css';
-import navItem from './nav-item.jsx';
+import NavItem from './nav-item.jsx';
 import logo from '../assets/nova_logo.png';
-import {useFileUpload} from '../hooks/useFileUpload';
 
-function SideBar({data}){
-    const {fileInputRef, selectedFile, handleTrigger, handleFileChange} = useFileUpload();
-
+function SideBar({ data, onNewClick, fileInputRef, onFileChange, activeTab, setActiveTab}){
     return(
         <aside className="sidebar">
             <div className="brand">
@@ -14,17 +11,24 @@ function SideBar({data}){
                 <span className="brand-text">Sakura Cloud</span>
             </div>
 
-            <button className="btn-new" onClick={handleTrigger}> 
-                <span className="material-symbols-rounded">add</span>
-                New
+            <button className="btn-new" onClick={onNewClick}> 
+                <span className="material-symbols-rounded">add</span> New
             </button>
 
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} style= {{display: 'none'}}/>
+            <input type="file" ref={fileInputRef} onChange={onFileChange} style= {{display: 'none'}}/>
 
             <nav className="sidebar-nav">
-                {navItem({icon: 'home', text: 'Home', link: '#', active: true})}
-                {navItem({icon: 'folder', text: 'My Files', link: '#', active: false})}
-                {navItem({icon: 'delete', text: 'Trash', link: '#', active: false})}
+                <div onClick={() => setActiveTab('home')}>
+                    <NavItem icon="home" text="Home" link="#" active={activeTab === 'home'} />
+                </div>
+                
+                <div onClick={() => setActiveTab('myfiles')}>
+                    <NavItem icon="folder" text="My Files" link="#" active={activeTab === 'myfiles'} />
+                </div>
+                
+                <div onClick={() => setActiveTab('trash')}>
+                    <NavItem icon="delete" text="Trash" link="#" active={activeTab === 'trash'} />
+                </div>
             </nav>
 
             <div className="storage">
