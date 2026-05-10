@@ -2,7 +2,7 @@
 import pool from "../db.js"
 
 const dashboard = {
-    mainpage: async (req, res) =>
+    mainpage: async (req, res) => // test
     {
         res.json({progress: `10%`});
     }, 
@@ -17,7 +17,7 @@ const dashboard = {
                 [userID]
             );
 
-            const sumStorage = await pool.query(
+            const sumStorage = await pool.query( // đoạn này t test
                 "select sum(fv.size_bytes) as total_storage from files f join users u on f.owner_id = u.id join file_versions fv on f.id = fv.file_id where u.id = $1 and f.deleted_at is NULL",
                 [userID]
             );
