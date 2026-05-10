@@ -52,17 +52,26 @@ const authController = {
                 process.env.JWT_SECRET,
                 {expiresIn: '15m'}
             );
+            //console.log(accessToken);
             const refreshToken = jwt.sign(
                 {userID: user.id},
                 process.env.JWT_SECRET,
                 {expiresIn: '7d'}
             );
+            //console.log(refreshToken);
 
             await pool.query(
                 "update users set refresh_token = $1 where id = $2",
                 [refreshToken, user.id]
             );
-            res.json({accessToken, refreshToken});
+            
+            res.cookie("refreshToken", refreshToken, {
+                httpOnly: true, // k cho phép js đọc
+                secure: true, // chỉ truyền qua https
+                sameSite: "Strict" // k cho phép các trang web khác gửi cookie
+            });
+
+            res.json({accessToken});
         }
         catch (err)
         {
@@ -116,28 +125,7 @@ const authController = {
         res.json({message: 'Đăng xuất thành công'});
     },
 
-    getProfile: async (req, res) =>
-    {
-        const userID = req.user.userID;
-        try
-        {
-            const result = await pool.query(
-                "select email from users where id = $1",
-                [userID]
-            );
-
-            const sumStorage = await pool.query(
-                "select sum(fv.size_bytes) as total_storage from files f join users u on f.owner_id = u.id join file_versions fv on f.id = fv.file_id where u.id = $1 and f.deleted_at is NULL",
-                [userID]
-            );
-            res.json({ user: result.rows[0], total_storage: sumStorage.rows[0].total_storage });
-        }
-        catch (err)
-        {
-            console.log('Error', err);
-            res.status(500).json({message: 'Lỗi Server'});
-        }
-    }
+    
 }
 
 export default authController;

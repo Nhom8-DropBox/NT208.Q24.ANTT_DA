@@ -23,11 +23,11 @@ function Dashboard() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                console.log("1. before fetch");
+                //console.log("1. before fetch");
                 const response = await fetchWithAuth(`/dashboard`);
 
                 const result = await response.json();
-                console.log("2. after fetch");
+                //console.log("2. after fetch");
                 if (!response.ok) {
                     throw new Error(result.message);
                 }
