@@ -33,9 +33,11 @@ function LoginForm()
 
             if(response.ok)
             {
-                console.log(`login sucessfully, token: ${result.token}`);
+                console.log(`login sucessfully, 
+                            accessToken: ${result.accessToken}`);
 
-                localStorage.setItem("token", result.token);
+                localStorage.setItem("accessToken", result.accessToken);
+                //localStorage.setItem("refreshToken", result.refreshToken);
 
                 alert("Đăng nhập thành công!");
 

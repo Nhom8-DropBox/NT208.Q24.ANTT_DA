@@ -61,7 +61,7 @@ export const useFileUpload = () => {
                 // API upload file của backend
                 await axios.post("http://localhost:3000/api/upload-chunk", formData, {
                     headers: {
-                        "Authorization": `Bearer ${localStorage.getItem('token')}`
+                        "Authorization": `Bearer ${localStorage.getItem('accessToken')}`
                     },
                     signal: controller.signal,
                     onUploadProgress: (e) => {
