@@ -7,7 +7,7 @@ import '../styles/mainContent.css';
 import UploadFiles from "./uploading-files.jsx";
 import { use, useState } from "react";
 
-function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onDownload, onShare, onVersoning ,onCancelUpload }) {
+function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onDownload, onShare, onVersoning, onCancelUpload, onResumeUpload, onRemoveUpload }) {
     const { isOpen, open, close } = useToggle();
 
     return (
@@ -47,8 +47,8 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                 </section>
             </div>
 
-            {!isUploading && <UploadBoard files={uploadingFiles} />}
-            {/* {uploadingFiles?.length > 0 && <UploadBoard files={uploadingFiles} onCancel={onCancelUpload} />} */}
+            {isUploading && <UploadBoard files={uploadingFiles} onPause={onCancelUpload} onResume={onResumeUpload} onCancel={onRemoveUpload} />}
+            {/* {uploadingFiles?.length > 0 && <UploadBoard files={uploadingFiles} onPause={onCancelUpload} onResume={onResumeUpload} onCancel={onRemoveUpload} />} */}
         </main>
     )
 }

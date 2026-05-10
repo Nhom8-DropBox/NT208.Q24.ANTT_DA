@@ -2,6 +2,7 @@
 // import vào dashboard để có thể truyền vào cả sidebar và maincontent - sidebar là nơi kích hoạt isUploading, maincontent dựa vao đó mà hiện thị ô uploadfile và hiển thị các file đã upload 
 import { useRef, useState } from 'react'
 import axios from 'axios';
+import { fetchWithAuth } from '../utils/api';
 
 export const useFileUpload = () => {
     const fileInputRef = useRef(null);
@@ -23,7 +24,7 @@ export const useFileUpload = () => {
 
         // Khởi tạo danh sách file đang chờ upload với progress = 0
         const newFiles = files.map(file => ({
-            id: `${file.name}-${file.size}-${Date.now()}`,
+            id: `${file.name}-${file.size}-${file.lastModified}`,
             name: file.name,
             progress: 0,
             status: 'uploading',
@@ -41,45 +42,92 @@ export const useFileUpload = () => {
     const uploadSingleFileInChunks = async (fileObj) => {
         const file = fileObj.rawFile;
         const fileId = fileObj.id;
-        const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
-        const total_chunks = Math.ceil(file.size / CHUNK_SIZE);
-
         const controller = new AbortController();
         abortControllers.current[fileId] = controller;
 
+
         try {
-            for (let i = 0; i < total_chunks; i++) {
-                const start = i * CHUNK_SIZE;
-                const end = Math.min(start + CHUNK_SIZE, file.size);
+            // Khởi tạo session hoặc Resume bằng fetchWithAuth
+            const Respond = await fetchWithAuth("/files/upload/init", {
+                method: "POST",
+                body: JSON.stringify({
+                    filename: file.name,
+                    mimeType: file.type,
+                    sizeBytes: file.size,
+                    fileId: fileId
+                })
+            });
+            const { sessionId, chunkSize, totalParts, uploadedParts = [] } = await Respond.json();
+
+            // Tính toán progress ban đầu dựa vào những phần đã upload (nếu có resume)
+            let completedPartsCount = uploadedParts.length;
+            const initialProgress = totalParts > 0 ? Math.round((completedPartsCount / totalParts) * 100) : 0;
+            setUploadingFiles(prev => prev.map(f =>
+                f.id === fileId ? { ...f, progress: initialProgress } : f
+            ));
+
+            // Loop upload từng part
+            for (let i = 0; i < totalParts; i++) {
+                const partNumber = i + 1; // Vì S3 yêu cầu partNumber bắt đầu từ 1
+
+                // If RESUME: Bỏ qua part đã được upload
+                if (uploadedParts.includes(partNumber)) {
+                    continue;
+                }
+
+                const start = i * chunkSize;
+                const end = Math.min(start + chunkSize, file.size);
                 const chunk = file.slice(start, end);
 
-                const formData = new FormData();
-                formData.append("chunk", chunk);
-                formData.append("index", i);
-                formData.append("fileId", fileId);
+                // API getUploadPartUrl
+                const urlRes = await fetchWithAuth("/files/upload/part-url", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        partNumber: partNumber
+                    })
+                });
 
-                // API upload file của backend
-                await axios.post("http://localhost:3000/api/upload-chunk", formData, {
-                    headers: {
-                        "Authorization": `Bearer ${localStorage.getItem('token')}`
-                    },
+                const { uploadUrl } = await urlRes.json();
+
+                // Upload thẳng lên S3/ MinIO (Dùng onUploadProgress của axios)
+                const s3Res = await axios.put(uploadUrl, chunk, {
+                    headers: { "Content-Type": file.type || "application/octet-stream" },
                     signal: controller.signal,
                     onUploadProgress: (e) => {
-                        const chunkProgress = (e.loaded / e.total) * (100 / total_chunks);
-                        const currentTotal = Math.round((i * (100 / total_chunks)) + chunkProgress);
+                        const chunkProgress = (e.loaded / e.total) * (100 / totalParts);
+                        const currentTotal = Math.round((completedPartsCount * (100 / totalParts)) + chunkProgress);
 
                         setUploadingFiles(prev => prev.map(f =>
-                            f.id === fileId ? { ...f, progress: currentTotal } : f
+                            f.id === fileId ? { ...f, progress: Math.min(currentTotal, 100) } : f
                         ));
                     }
                 });
+
+                let etag = s3Res.headers.etag || s3Res.headers.Etag;
+                if (etag) etag = etag.replace(/"/g, '');
+
+                // Xác nhận upload part lên backend
+                await fetchWithAuth("/files/upload/part-complete", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        partNumber: partNumber,
+                        etag: etag,
+                        sizeBytes: chunk.size
+                    })
+                });
+
+                // Tăng biến đếm part sau khi xác nhận thành công
+                completedPartsCount++;
             }
 
-            // Gộp file gọi tới backend
-            await axios.post("http://localhost:3000/api/merge", { fileId, fileName: file.name }, {
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem('token')}`
-                }
+            // Gộp file
+            await fetchWithAuth("/files/upload/complete", {
+                method: "POST",
+                body: JSON.stringify({
+                    sessionId: sessionId,
+                })
             });
 
             setUploadingFiles(prev => prev.map(f =>
@@ -87,7 +135,7 @@ export const useFileUpload = () => {
             ));
 
         } catch (error) {
-            if (axios.isCancel(error)) {
+            if (axios.isCancel(error) || error.name === 'AbortError') {
                 setUploadingFiles(prev => prev.map(f =>
                     f.id === fileId ? { ...f, status: 'stopped' } : f
                 ));
@@ -109,12 +157,26 @@ export const useFileUpload = () => {
         }
     };
 
+    const resumeUpload = (fileObj) => {
+        setUploadingFiles(prev => prev.map(f =>
+            f.id === fileObj.id ? { ...f, status: 'uploading' } : f
+        ));
+        uploadSingleFileInChunks(fileObj);
+    };
+
+    const removeUpload = (fileId) => {
+        cancelUpload(fileId);
+        setUploadingFiles(prev => prev.filter(f => f.id !== fileId));
+    };
+
     return {
         fileInputRef,
         uploadingFiles,
         isUploading,
         handleTrigger,
         handleFileChange,
-        cancelUpload
+        cancelUpload,
+        resumeUpload,
+        removeUpload
     };
 };

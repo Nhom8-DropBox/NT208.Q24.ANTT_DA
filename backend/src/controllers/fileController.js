@@ -1,343 +1,373 @@
 import pool from "../db.js";
-import {completeUpload, createMultipartUpload, getPartPresignedUrl, GetDownloadURL} from "../s3.js";
+import { completeUpload, createMultipartUpload, getPartPresignedUrl, GetDownloadURL } from "../s3.js";
 
 const fileController = {
-  initMultipartUpload: async (req, res) => {
-    const { filename, mimeType, sizeBytes, fileId } = req.body; 
-    const userId = req.user.userID;
-    const chunkSize = 5 * 1024 * 1024;
-    const totalParts = Math.ceil(sizeBytes / chunkSize);
-    const uniquePart = Date.now();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-    const s3Key = `users/${userId}/files/${uniquePart}-${filename}`;
-    try {
-        const multipartResult = await createMultipartUpload({
-            key: s3Key,
-            contentType: mimeType,
-            metadata: {
-                ownerId: String(userId)
-            }
-        });
+    initMultipartUpload: async (req, res) => {
+        const { filename, mimeType, sizeBytes, fileId } = req.body;
+        const userId = req.user.userID;
+        const chunkSize = 5 * 1024 * 1024;
+        const totalParts = Math.ceil(sizeBytes / chunkSize);
+        const uniquePart = Date.now();
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        const s3Key = `users/${userId}/files/${uniquePart}-${filename}`;
+        try {
+            // Kiểm tra xem đã có session nào đang pending cho file này chưa (dựa vào fileId và owner_id)
+            const existingSessionRes = await pool.query(
+                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND filename = $2 AND status = 'pending' AND expires_at > NOW()`,
+                [userId, filename]
+            );
 
-        const { uploadId } = multipartResult;
-        const result = await pool.query(
-            `INSERT INTO upload_sessions (owner_id, file_id, filename, s3_upload_id, s3_key, chunk_size, status, expires_at )
+            if (existingSessionRes.rows.length > 0) {
+                // Có session đang pending -> Resume
+                const session = existingSessionRes.rows[0];
+
+                // Lấy danh sách các part đã upload xong
+                const partsRes = await pool.query(
+                    `SELECT part_number FROM upload_parts WHERE upload_session_id = $1`,
+                    [session.id]
+                );
+                const uploadedParts = partsRes.rows.map(row => row.part_number);
+
+                return res.status(200).json({
+                    sessionId: session.id,
+                    uploadId: session.s3_upload_id,
+                    s3Key: session.s3_key,
+                    chunkSize: session.chunk_size,
+                    totalParts: totalParts,
+                    uploadedParts: uploadedParts,
+                    message: "Resume upload"
+                });
+            }
+
+            // Nếu không có session pending nào -> Tạo mới hoàn toàn
+            const multipartResult = await createMultipartUpload({
+                key: s3Key,
+                contentType: mimeType,
+                metadata: {
+                    ownerId: String(userId)
+                }
+            });
+
+            const { uploadId } = multipartResult;
+            const result = await pool.query(
+                `INSERT INTO upload_sessions (owner_id, file_id, filename, s3_upload_id, s3_key, chunk_size, status, expires_at )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING id `,
-            [userId , fileId, filename, uploadId , s3Key , chunkSize, 'pending' , expiresAt ]
-        );
+                [userId, null, filename, uploadId, s3Key, chunkSize, 'pending', expiresAt]
+            );
 
-        const session = result.rows[0];
-        return res.status(201).json({
-            sessionId: session.id,
-            uploadId: uploadId,
-            s3Key: s3Key,
-            chunkSize: chunkSize,
-            totalParts: totalParts,
-            expiresAt: expiresAt,
-            message: "Tải file lên thành công!"
-        });
-
-
-    } catch (err){
-        console.log(err)
-        return res.status(500).json({
-            message: "Bad Server"
-        });
-    }
-  },
-  getUploadPartUrl: async (req, res) => {
-    const userId = req.user.userID
-    const { sessionId , partNumber } = req.body;
-    console.log ( { sessionId , partNumber })
-    try {
-
-
-        const result = await pool.query(
-            `SELECT * FROM upload_sessions WHERE id = $1`,
-            [sessionId]
-        );
-        const session = result.rows[0];
-        if (!session){
-            return res.status(404).json({
-                message: "Khong co session hop le"
-            });
-        }
-        else if (session.owner_id != userId){
-            return res.status(403).json({
-                message: "Khong co quyen truy cap"
-            });
-        }
-        else if (session.status !== "pending"){
-            return res.status(400).json({
-                message:" session không còn pending "
+            const session = result.rows[0];
+            return res.status(201).json({
+                sessionId: session.id,
+                uploadId: uploadId,
+                s3Key: s3Key,
+                chunkSize: chunkSize,
+                totalParts: totalParts,
+                uploadedParts: [], // Mảng chứa danh sách các part đã upload thành công -> tính năng resume
+                expiresAt: expiresAt,
+                message: "Tạo session upload mới thành công!"
             });
 
+
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Bad Server"
+            });
         }
-        else if (new Date(session.expires_at ) < new Date()){
-            return res.status(400).json({
-                message:"session đã hết hạn"
+    },
+    getUploadPartUrl: async (req, res) => {
+        const userId = req.user.userID
+        const { sessionId, partNumber } = req.body;
+        console.log({ sessionId, partNumber })
+        try {
+
+
+            const result = await pool.query(
+                `SELECT * FROM upload_sessions WHERE id = $1`,
+                [sessionId]
+            );
+            const session = result.rows[0];
+            if (!session) {
+                return res.status(404).json({
+                    message: "Khong co session hop le"
+                });
+            }
+            else if (session.owner_id != userId) {
+                return res.status(403).json({
+                    message: "Khong co quyen truy cap"
+                });
+            }
+            else if (session.status !== "pending") {
+                return res.status(400).json({
+                    message: " session không còn pending "
+                });
+
+            }
+            else if (new Date(session.expires_at) < new Date()) {
+                return res.status(400).json({
+                    message: "session đã hết hạn"
+                })
+            }
+            const resultURL = await getPartPresignedUrl({
+                key: session.s3_key,
+                uploadId: session.s3_upload_id,
+                partNumber: partNumber
             })
-        }
-        const resultURL = await getPartPresignedUrl ({
-            key: session.s3_key,
-            uploadId: session.s3_upload_id,
-            partNumber: partNumber
-        })
-        return res.status(200).json({
-            sessionId: sessionId,
-            partNumber: partNumber,
-            uploadUrl: resultURL.uploadUrl
-        })
-
-    } catch(err){
-        console.log(err)
-        return res.status(500).json({
-            message: "Bad Server"
-        });
-    }
-    
-
-
-
-  },
-
-
-  confirmUploadPart: async (req, res) => {
-    const {sessionId , partNumber, etag, sizeBytes} = req.body;
-    const userId = req.user.userID;
-    try{
-const sessionResult = await pool.query(
-            `SELECT * FROM upload_sessions WHERE id = $1`,
-            [sessionId]
-        );
-        const session = sessionResult.rows[0];
-
-        if (!session){
-            return res.status(404).json({
-                message: "Khong co session hop le"
-            });
-        }
-        else if (session.owner_id != userId){
-            return res.status(403).json({
-                message: "Khong co quyen truy cap"
-            });
-        }
-        else if (session.status !== "pending"){
-            return res.status(400).json({
-                message:" session không còn pending "
-            });
-
-        }
-        else if (new Date(session.expires_at ) < new Date()){
-            return res.status(400).json({
-                message:"session đã hết hạn"
+            return res.status(200).json({
+                sessionId: sessionId,
+                partNumber: partNumber,
+                uploadUrl: resultURL.uploadUrl
             })
+
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Bad Server"
+            });
         }
-        const result = await pool.query(
-            `INSERT INTO upload_parts (upload_session_id, part_number, etag, size_bytes)
+
+
+
+
+    },
+
+
+    confirmUploadPart: async (req, res) => {
+        const { sessionId, partNumber, etag, sizeBytes } = req.body;
+        const userId = req.user.userID;
+        try {
+            const sessionResult = await pool.query(
+                `SELECT * FROM upload_sessions WHERE id = $1`,
+                [sessionId]
+            );
+            const session = sessionResult.rows[0];
+
+            if (!session) {
+                return res.status(404).json({
+                    message: "Khong co session hop le"
+                });
+            }
+            else if (session.owner_id != userId) {
+                return res.status(403).json({
+                    message: "Khong co quyen truy cap"
+                });
+            }
+            else if (session.status !== "pending") {
+                return res.status(400).json({
+                    message: " session không còn pending "
+                });
+
+            }
+            else if (new Date(session.expires_at) < new Date()) {
+                return res.status(400).json({
+                    message: "session đã hết hạn"
+                })
+            }
+            const result = await pool.query(
+                `INSERT INTO upload_parts (upload_session_id, part_number, etag, size_bytes)
             VALUES ($1, $2, $3, $4) 
             ON CONFLICT (upload_session_id, part_number)
             DO UPDATE SET
                 etag = EXCLUDED.etag,
                 size_bytes = EXCLUDED.size_bytes
             RETURNING * `,
-            [sessionId , partNumber, etag, sizeBytes]
-        );
-         
-        return res.status(200).json({
-            success : true,
-            sessionId: sessionId,
-            partNumber: partNumber,
-            message : 'Đã upload thanh cong'
+                [sessionId, partNumber, etag, sizeBytes]
+            );
+
+            return res.status(200).json({
+                success: true,
+                sessionId: sessionId,
+                partNumber: partNumber,
+                message: 'Đã upload thanh cong'
+            });
+
+
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Bad Server"
+            });
+        }
+
+
+
+    },
+    getUploadSessionStatus: async (req, res) => {
+        return res.status(501).json({
+            message: "completeMultipartUpload chưa được implement"
         });
-
-
-    } catch (err){
-        console.log(err)
-        return res.status(500).json({
-            message: "Bad Server"
-        });
-    }
+    },
 
 
 
-  },
-  getUploadSessionStatus: async (req, res) => {
-    return res.status(501).json({
-      message: "completeMultipartUpload chưa được implement"
-    });
-  },
+    completeMultipartUpload: async (req, res) => {
+        const { sessionId } = req.body;
+        const userId = req.user.userID;
 
+        try {
+            const sessionResult = await pool.query(
+                `SELECT * FROM upload_sessions WHERE id = $1`,
+                [sessionId]
+            );
 
+            const session = sessionResult.rows[0];
+            if (!session) {
+                return res.status(404).json({
+                    message: "Khong co session hop le"
+                });
+            }
+            else if (session.owner_id != userId) {
+                return res.status(403).json({
+                    message: "Khong co quyen truy cap"
+                });
+            }
+            else if (session.status !== "pending") {
+                return res.status(400).json({
+                    message: " session không còn pending "
+                });
 
-  completeMultipartUpload: async (req, res) => {
-    const {sessionId} = req.body;
-    const userId = req.user.userID;
+            }
+            else if (new Date(session.expires_at) < new Date()) {
+                return res.status(400).json({
+                    message: "session đã hết hạn"
+                })
+            }
 
-    try {
-        const sessionResult = await pool.query(
-            `SELECT * FROM upload_sessions WHERE id = $1`,
-            [sessionId]
-        );
-
-        const session = sessionResult.rows[0];
-        if (!session){
-            return res.status(404).json({
-                message: "Khong co session hop le"
-            });
-        }
-        else if (session.owner_id != userId){
-            return res.status(403).json({
-                message: "Khong co quyen truy cap"
-            });
-        }
-        else if (session.status !== "pending"){
-            return res.status(400).json({
-                message:" session không còn pending "
-            });
-
-        }
-        else if (new Date(session.expires_at ) < new Date()){
-            return res.status(400).json({
-                message:"session đã hết hạn"
-            })
-        }
-
-        const partResult = await pool.query(
-            `SELECT part_number, etag
+            const partResult = await pool.query(
+                `SELECT part_number, etag
             FROM upload_parts
             WHERE upload_session_id = $1
             ORDER BY part_number ASC`,
-            [sessionId]
-        );
+                [sessionId]
+            );
 
-        const parts = partResult.rows;
+            const parts = partResult.rows;
 
-        if(parts.length == 0){
-            return res.status(400).json({
-                message: "Chua co part nao de complete"
+            if (parts.length == 0) {
+                return res.status(400).json({
+                    message: "Chua co part nao de complete"
+                })
+            }
+
+            const formatPart = parts.map((part) => ({
+                PartNumber: part.part_number,
+                ETag: part.etag
+            }));
+
+            const completeResult = await completeUpload({
+                key: session.s3_key,
+                uploadId: session.s3_upload_id,
+                parts: formatPart
             })
-        }
-
-        const formatPart = parts.map((part)=>({
-            PartNumber: part.part_number,
-            ETag: part.etag
-        }));
-
-        const completeResult = await completeUpload({
-            key: session.s3_key,
-            uploadId: session.s3_upload_id,
-            parts: formatPart
-        })
 
 
-        const sizeResult = await pool.query(
-            `SELECT COALESCE(SUM(size_bytes), 0) AS total_size
+            const sizeResult = await pool.query(
+                `SELECT COALESCE(SUM(size_bytes), 0) AS total_size
             FROM upload_parts
             WHERE upload_session_id = $1`,
-            [sessionId]
-        );
+                [sessionId]
+            );
 
-        const totalSize = sizeResult.rows[0].total_size
+            const totalSize = sizeResult.rows[0].total_size
 
 
-        const fileResult =  await pool.query(
-            `INSERT INTO files (owner_id, name, mime_type)
+            const fileResult = await pool.query(
+                `INSERT INTO files (owner_id, name, mime_type)
             VALUES ($1, $2, $3)
             RETURNING id`,
-            [session.owner_id, session.filename, null]
-        );
+                [session.owner_id, session.filename, null]
+            );
 
-        const fileId = fileResult.rows[0].id;
-        
-        await pool.query(
-        `INSERT INTO file_versions (file_id, version_no, s3_key, size_bytes, etag)
+            const fileId = fileResult.rows[0].id;
+
+            await pool.query(
+                `INSERT INTO file_versions (file_id, version_no, s3_key, size_bytes, etag)
         VALUES ($1, $2, $3, $4, $5)`,
-        [fileId, 1, session.s3_key, totalSize, completeResult.etag]
-        );
+                [fileId, 1, session.s3_key, totalSize, completeResult.etag]
+            );
 
-        await pool.query(
-            `UPDATE upload_sessions
+            await pool.query(
+                `UPDATE upload_sessions
             SET status = $1
             WHERE id = $2`,
-            ["completed", sessionId]
-        );
+                ["completed", sessionId]
+            );
 
 
 
 
 
-        return res.status(200).json({
-            success: true,
-            sessionId: sessionId,
-            message: "Multipart upload completed"
-        });
+            return res.status(200).json({
+                success: true,
+                sessionId: sessionId,
+                message: "Multipart upload completed"
+            });
 
 
 
 
-        
-    } catch (err) {
-        console.log(err)
-        return res.status(500).json({
-            message: "Bad Server"
-        });
-    }
 
-  },
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                message: "Bad Server"
+            });
+        }
+
+    },
 
 
-  GetPresignedDownloadURL: async (req,res)=>{
-    const fileId = req.params.id;
-    const userId = req.user.userID;
-    try {
-        
-        const result = await pool.query(
-            `SELECT f.id, f.owner_id, f.name, fv.s3_key
+    GetPresignedDownloadURL: async (req, res) => {
+        const fileId = req.params.id;
+        const userId = req.user.userID;
+        try {
+
+            const result = await pool.query(
+                `SELECT f.id, f.owner_id, f.name, fv.s3_key
             FROM files as f
             JOIN file_versions as fv ON fv.file_id = f.id
             WHERE f.id = $1 AND f.deleted_at IS NULL`,
-            [fileId]
-        );
+                [fileId]
+            );
 
-        const file = result.rows[0];
+            const file = result.rows[0];
 
-        if (!file){
-            return res.status(404).json({
-                message: "Khong tim thay file"
+            if (!file) {
+                return res.status(404).json({
+                    message: "Khong tim thay file"
+                });
+            }
+
+            if (file.owner_id !== userId) {
+                return res.status(403).json({
+                    message: "Khong co quyen truy cap file"
+                });
+            }
+
+            const { downloadURL } = await GetDownloadURL({ key: file.s3_key })
+
+            return res.status(200).json({
+                fileId: file.id,
+                downloadURL: downloadURL
             });
+
+
+
+
+        } catch (err) {
+
         }
+    },
 
-        if(file.owner_id !== userId){
-            return res.status(403).json({
-                message: "Khong co quyen truy cap file"
-            });
-        }
 
-        const { downloadURL } = await GetDownloadURL({ key: file.s3_key })
 
-        return res.status(200).json({
-            fileId: file.id,
-            downloadURL: downloadURL
+
+    abortMultipartUpload: async (req, res) => {
+        return res.status(501).json({
+            message: "abortMultipartUpload chưa được implement"
         });
-
-
-        
-        
-    } catch (err) {
-        
-    }
-  },
-
-
-
-
-  abortMultipartUpload: async (req, res) => {
-    return res.status(501).json({
-      message: "abortMultipartUpload chưa được implement"
-    });
-  },
+    },
 };
 
 export default fileController;

@@ -1,6 +1,6 @@
 import '../styles/upload.css'
 import UploadFiles from './uploading-files';
-function UploadBoard({ files = [], onCancel }) {
+function UploadBoard({ files = [], onPause, onResume, onCancel }) {
     return (
         <div className="uploadContainer">
             <div className="sparkle s1">✦</div>
@@ -21,6 +21,9 @@ function UploadBoard({ files = [], onCancel }) {
                         fileName={file.name}
                         progress={file.progress}
                         status={file.status}
+                        onPause={() => onPause(file.id)}
+                        onResume={() => onResume(file)}
+                        onCancel={() => onCancel(file.id)}
                     />
                 ))}
 
