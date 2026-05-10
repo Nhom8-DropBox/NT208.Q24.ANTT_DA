@@ -48,7 +48,7 @@ export const useFileUpload = () => {
 
         try {
             // Khởi tạo session hoặc Resume bằng fetchWithAuth
-            const Respond = await fetchWithAuth("/api/initMultipartUpload", {
+            const Respond = await fetchWithAuth("/files/upload/init", {
                 method: "POST",
                 body: JSON.stringify({
                     filename: file.name,
@@ -80,7 +80,7 @@ export const useFileUpload = () => {
                 const chunk = file.slice(start, end);
 
                 // API getUploadPartUrl
-                const urlRes = await fetchWithAuth("/api/getUploadPartUrl", {
+                const urlRes = await fetchWithAuth("/files/upload/part-url", {
                     method: "POST",
                     body: JSON.stringify({
                         sessionId: sessionId,
@@ -108,7 +108,7 @@ export const useFileUpload = () => {
                 if (etag) etag = etag.replace(/"/g, '');
 
                 // Xác nhận upload part lên backend
-                await fetchWithAuth("/api/confirmUploadPart", {
+                await fetchWithAuth("/files/upload/part-complete", {
                     method: "POST",
                     body: JSON.stringify({
                         sessionId: sessionId,
@@ -123,7 +123,7 @@ export const useFileUpload = () => {
             }
 
             // Gộp file
-            await fetchWithAuth("/api/completeMultipartUpload", {
+            await fetchWithAuth("/files/upload/complete", {
                 method: "POST",
                 body: JSON.stringify({
                     sessionId: sessionId,

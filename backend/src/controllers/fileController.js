@@ -13,8 +13,8 @@ const fileController = {
         try {
             // Kiểm tra xem đã có session nào đang pending cho file này chưa (dựa vào fileId và owner_id)
             const existingSessionRes = await pool.query(
-                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND file_id = $2 AND status = 'pending' AND expires_at > NOW()`,
-                [userId, fileId]
+                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND filename = $2 AND status = 'pending' AND expires_at > NOW()`,
+                [userId, filename]
             );
 
             if (existingSessionRes.rows.length > 0) {
@@ -53,7 +53,7 @@ const fileController = {
                 `INSERT INTO upload_sessions (owner_id, file_id, filename, s3_upload_id, s3_key, chunk_size, status, expires_at )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING id `,
-                [userId, fileId, filename, uploadId, s3Key, chunkSize, 'pending', expiresAt]
+                [userId, null, filename, uploadId, s3Key, chunkSize, 'pending', expiresAt]
             );
 
             const session = result.rows[0];
