@@ -47,7 +47,9 @@ function Dashboard() {
         isUploading,
         handleTrigger,
         handleFileChange,
-        cancelUpload
+        cancelUpload,
+        resumeUpload,
+        removeUpload
     } = useFileUpload();
 
     return (
@@ -73,6 +75,8 @@ function Dashboard() {
                     onShare={handleShare}
                     onVersoning = {handleVersoning}
                     onCancelUpload={cancelUpload}
+                    onResumeUpload={resumeUpload}
+                    onRemoveUpload={removeUpload}
                 />
             </div>
 

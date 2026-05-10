@@ -23,7 +23,25 @@ app.use(`/dashboard`, middlewareAuth, dashboardRoute);
 app.use('/share-links', shareRoute)
 app.use('/files', middlewareAuth, filesRoute);
 
+app.listen(PORT, async () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  // ==========================================
+  // 🛠️ ĐOẠN CODE DEBUG DATABASE (TẦNG 1)
+  // Chạy ngay khi khởi động server
+  // ==========================================
+  try {
+    const client = await pool.connect();
+    console.log("✅ Kết nối Database thành công!");
+    client.release(); // Trả kết nối lại cho Pool sau khi test xong
+  } catch (err) {
+    console.error("❌ Lỗi kết nối Database ngay lúc khởi động:");
+    console.error("👉 Nguyên nhân:", err.message);
+  }
+  // ==========================================
 });
+
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on http://localhost:${PORT}`);
+// });
