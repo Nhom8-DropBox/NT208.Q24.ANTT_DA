@@ -1,5 +1,6 @@
 import express from "express";
 import fileController from "../controllers/fileController.js";
+import listController from "../controllers/listController.js";
 
 const router = express.Router();
 
@@ -11,6 +12,9 @@ router.get("/upload/:sessionId/status", fileController.getUploadSessionStatus);
 router.post("/upload/complete", fileController.completeMultipartUpload);
 router.post("/upload/abort", fileController.abortMultipartUpload);
 router.get("/:id/download-url", fileController.GetPresignedDownloadURL);
+router.get("/", listController.getFiles);
+router.get("/:id", listController.getFileById);
+router.delete("/:id", listController.deleteFile);
 
 
 export default router;

@@ -34,7 +34,63 @@ npm install
 npm run dev
 ```
 
-## 3. Register
+## 3. Bang trong database
+
+`users`
+- `id`
+- `email`
+- `password_hash`
+- `created_at`
+- `refresh_token`
+
+`files`
+- `id`
+- `owner_id`
+- `name`
+- `mime_type`
+- `deleted_at`
+- `created_at`
+- `updated_at`
+
+`file_versions`
+- `id`
+- `file_id`
+- `version_no`
+- `s3_key`
+- `size_bytes`
+- `etag`
+- `created_at`
+
+`upload_sessions`
+- `id`
+- `owner_id`
+- `file_id`
+- `filename`
+- `s3_upload_id`
+- `s3_key`
+- `chunk_size`
+- `status`
+- `expires_at`
+- `created_at`
+
+`upload_parts`
+- `id`
+- `upload_session_id`
+- `part_number`
+- `etag`
+- `size_bytes`
+
+`share_links`
+- `id`
+- `file_id`
+- `version_id`
+- `token_uuid`
+- `permission`
+- `expires_at`
+- `revoked_at`
+- `created_at`
+
+## 4. Register
 
 - Method: `POST`
 - URL: `http://localhost:3000/auth/register`
@@ -54,7 +110,7 @@ Body:
 }
 ```
 
-## 4. Login
+## 5. Login
 
 - Method: `POST`
 - URL: `http://localhost:3000/auth/login`
@@ -110,23 +166,15 @@ Response:
 }
 ```
 
-## 6. Header auth cho request `/files`
+## 7. Header auth cho request `/files`
 
 ```text
 Authorization: Bearer <accessToken>
 ```
 
-## 7. Upload init
+## 8. Upload init
 
-Dang test bang file notepad, vi du `note.txt`.
-
-De test 2 part hop le:
-- tong file > `5MB`
-- part 1 = `5MB`
-- part 2 = phan con lai
-
-Vi du file tong la `6.5MB`:
-- `sizeBytes = 6815744`
+Dang test bang file notepad `note.txt`.
 
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/init`
@@ -163,7 +211,7 @@ Response mong doi:
 }
 ```
 
-## 8. part-url cho part 1
+## 9. part-url cho part 1
 
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/part-url`
@@ -184,7 +232,7 @@ Body:
 }
 ```
 
-## 9. PUT part 1 len MinIO
+## 10. PUT part 1 len MinIO
 
 - Method: `PUT`
 - URL: dan nguyen gia tri `uploadUrl`
@@ -193,14 +241,11 @@ Body:
 - chon `binary`
 - chon file `part1.txt` hoac `part1.bin`
 
-Yeu cau:
 - size part 1 = `5242880` bytes
 - `Authorization` tab = `No Auth`
-
-Sau request nay:
 - lay `ETag` trong response headers
 
-## 10. part-complete cho part 1
+## 11. part-complete cho part 1
 
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/part-complete`
@@ -223,7 +268,7 @@ Body:
 }
 ```
 
-## 11. part-url cho part 2
+## 12. part-url cho part 2
 
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/part-url`
@@ -244,7 +289,7 @@ Body:
 }
 ```
 
-## 12. PUT part 2 len MinIO
+## 13. PUT part 2 len MinIO
 
 - Method: `PUT`
 - URL: dan nguyen gia tri `uploadUrl`
@@ -253,14 +298,11 @@ Body:
 - chon `binary`
 - chon file `part2.txt` hoac `part2.bin`
 
-Yeu cau:
 - part 2 la part cuoi, co the nho hon `5MB`
 - `Authorization` tab = `No Auth`
-
-Sau request nay:
 - lay `ETag` trong response headers
 
-## 13. part-complete cho part 2
+## 14. part-complete cho part 2
 
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/part-complete`
@@ -283,7 +325,7 @@ Body:
 }
 ```
 
-## 14. Complete upload
+## 15. Complete upload
 
 - Method: `POST`
 - URL: `http://localhost:3000/files/upload/complete`
@@ -303,7 +345,19 @@ Body:
 }
 ```
 
-## 15. Query DB
+## 16. Query DB
+
+Xem bang:
+
+```powershell
+docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "\dt"
+```
+
+Xem cot cua 1 bang:
+
+```powershell
+docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "\d files"
+```
 
 Xem users:
 
@@ -322,4 +376,3 @@ Xem upload_parts:
 ```powershell
 docker exec -it cloud_storage_db psql -U postgres -d cloud_storage -c "SELECT id, upload_session_id, part_number, etag, size_bytes FROM upload_parts ORDER BY id DESC;"
 ```
-
