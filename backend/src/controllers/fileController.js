@@ -10,16 +10,17 @@ const fileController = {
         const uniquePart = Date.now();
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
         const s3Key = `users/${userId}/files/${uniquePart}-${filename}`;
+
         try {
             // Kiểm tra xem đã có session nào đang pending cho file này chưa (dựa vào fileId và owner_id)
-            const existingSessionRes = await pool.query(
+            const existSession = await pool.query(
                 `SELECT * FROM upload_sessions WHERE owner_id = $1 AND filename = $2 AND status = 'pending' AND expires_at > NOW()`,
                 [userId, filename]
             );
 
-            if (existingSessionRes.rows.length > 0) {
+            if (existSession.rows.length > 0) {
                 // Có session đang pending -> Resume
-                const session = existingSessionRes.rows[0];
+                const session = existSession.rows[0];
 
                 // Lấy danh sách các part đã upload xong
                 const partsRes = await pool.query(
@@ -39,6 +40,8 @@ const fileController = {
                 });
             }
 
+
+
             // Nếu không có session pending nào -> Tạo mới hoàn toàn
             const multipartResult = await createMultipartUpload({
                 key: s3Key,
@@ -49,24 +52,51 @@ const fileController = {
             });
 
             const { uploadId } = multipartResult;
+
             const result = await pool.query(
                 `INSERT INTO upload_sessions (owner_id, file_id, filename, s3_upload_id, s3_key, chunk_size, status, expires_at )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-            RETURNING id `,
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+                RETURNING id `,
                 [userId, null, filename, uploadId, s3Key, chunkSize, 'pending', expiresAt]
             );
-
             const session = result.rows[0];
-            return res.status(201).json({
-                sessionId: session.id,
-                uploadId: uploadId,
-                s3Key: s3Key,
-                chunkSize: chunkSize,
-                totalParts: totalParts,
-                uploadedParts: [], // Mảng chứa danh sách các part đã upload thành công -> tính năng resume
-                expiresAt: expiresAt,
-                message: "Tạo session upload mới thành công!"
-            });
+
+            const existFile = await pool.query(
+                `SELECT * FROM files 
+                WHERE owner_id = $1 AND name = $2 AND mime_type = $3 `,
+                [userId, filename, mimeType] 
+            )
+            if (existFile.rows.length > 0){
+                const file = existFile.rows[0];
+                await pool.query(
+                    `UPDATE upload_sessions
+                    SET file_id = $1
+                    WHERE id = $2`,
+                    [file.id, session.id]
+                );
+                return res.status(201).json({
+                    sessionId: session.id,
+                    uploadId: uploadId,
+                    s3Key: s3Key,
+                    chunkSize: chunkSize,
+                    totalParts: totalParts,
+                    expiresAt: expiresAt,
+                    message: "Tạo session upload mới thành công!"
+                });
+            }
+            else{
+
+
+                return res.status(201).json({
+                    sessionId: session.id,
+                    uploadId: uploadId,
+                    s3Key: s3Key,
+                    chunkSize: chunkSize,
+                    totalParts: totalParts,
+                    expiresAt: expiresAt,
+                    message: "Tạo session upload mới thành công!"
+                });
+            }
 
 
         } catch (err) {
@@ -76,6 +106,8 @@ const fileController = {
             });
         }
     },
+
+
     getUploadPartUrl: async (req, res) => {
         const userId = req.user.userID
         const { sessionId, partNumber } = req.body;
@@ -128,8 +160,6 @@ const fileController = {
         }
 
 
-
-
     },
 
 
@@ -166,12 +196,12 @@ const fileController = {
             }
             const result = await pool.query(
                 `INSERT INTO upload_parts (upload_session_id, part_number, etag, size_bytes)
-            VALUES ($1, $2, $3, $4) 
-            ON CONFLICT (upload_session_id, part_number)
-            DO UPDATE SET
-                etag = EXCLUDED.etag,
-                size_bytes = EXCLUDED.size_bytes
-            RETURNING * `,
+                VALUES ($1, $2, $3, $4) 
+                ON CONFLICT (upload_session_id, part_number)
+                DO UPDATE SET
+                    etag = EXCLUDED.etag,
+                    size_bytes = EXCLUDED.size_bytes
+                RETURNING * `,
                 [sessionId, partNumber, etag, sizeBytes]
             );
 
@@ -193,11 +223,7 @@ const fileController = {
 
 
     },
-    getUploadSessionStatus: async (req, res) => {
-        return res.status(501).json({
-            message: "completeMultipartUpload chưa được implement"
-        });
-    },
+
 
 
 
@@ -236,9 +262,9 @@ const fileController = {
 
             const partResult = await pool.query(
                 `SELECT part_number, etag
-            FROM upload_parts
-            WHERE upload_session_id = $1
-            ORDER BY part_number ASC`,
+                FROM upload_parts
+                WHERE upload_session_id = $1
+                ORDER BY part_number ASC`,
                 [sessionId]
             );
 
@@ -261,21 +287,74 @@ const fileController = {
                 parts: formatPart
             })
 
-
+            // Query để lấy total size
             const sizeResult = await pool.query(
                 `SELECT COALESCE(SUM(size_bytes), 0) AS total_size
-            FROM upload_parts
-            WHERE upload_session_id = $1`,
+                FROM upload_parts
+                WHERE upload_session_id = $1`,
                 [sessionId]
             );
 
             const totalSize = sizeResult.rows[0].total_size
 
+            if (session.file_id){
+                const existFileResult = await pool.query(
+                    `SELECT id, owner_id, deleted_at
+                    FROM files
+                    WHERE id = $1`,
+                    [session.file_id]
+                );
+                const existFile = existFileResult.rows[0];
 
-            const fileResult = await pool.query(
+                //if (existFile.)
+
+
+                if (existFile.owner_id !== userId) {
+                    return res.status(403).json({
+                        message: "Ban khong co quyen upload file nay"
+                    })
+                }
+                if (existFile.deleted_at){
+                    return res.status(403).json({
+                        message: "file nay da bi xoa"
+                    })
+                }
+                const versionResult = await pool.query(
+                    `SELECT COALESCE(MAX(version_no), 0) AS max_version
+                    FROM file_versions
+                    WHERE file_id = $1`,
+                    [session.file_id]
+                );
+                const maxVersion = versionResult.rows[0].max_version;
+                const nextVersion = Number(maxVersion) + 1;
+                await pool.query(
+                    `INSERT INTO file_versions (file_id, version_no, s3_key, size_bytes, etag)
+                    VALUES ($1, $2, $3, $4, $5)`,
+                    [session.file_id, nextVersion, session.s3_key, totalSize, completeResult.etag]
+                );
+
+
+                await pool.query(
+                    `UPDATE upload_sessions
+                    SET status = $1
+                    WHERE id = $2`,
+                    ["completed", sessionId]
+                );
+                
+                return res.status(200).json({
+                    success: true,
+                    sessionId: sessionId,
+                    fileId: session.file_id,
+                    versionNo: nextVersion,
+                    message: "Versioning upload completed"
+                });
+
+            }
+            else {
+                const fileResult = await pool.query(
                 `INSERT INTO files (owner_id, name, mime_type)
-            VALUES ($1, $2, $3)
-            RETURNING id`,
+                VALUES ($1, $2, $3)
+                RETURNING id`,
                 [session.owner_id, session.filename, null]
             );
 
@@ -283,14 +362,16 @@ const fileController = {
 
             await pool.query(
                 `INSERT INTO file_versions (file_id, version_no, s3_key, size_bytes, etag)
-        VALUES ($1, $2, $3, $4, $5)`,
+                VALUES ($1, $2, $3, $4, $5)`,
                 [fileId, 1, session.s3_key, totalSize, completeResult.etag]
             );
 
+            }
+
             await pool.query(
                 `UPDATE upload_sessions
-            SET status = $1
-            WHERE id = $2`,
+                SET status = $1
+                WHERE id = $2`,
                 ["completed", sessionId]
             );
 
@@ -325,9 +406,9 @@ const fileController = {
 
             const result = await pool.query(
                 `SELECT f.id, f.owner_id, f.name, fv.s3_key
-            FROM files as f
-            JOIN file_versions as fv ON fv.file_id = f.id
-            WHERE f.id = $1 AND f.deleted_at IS NULL`,
+                FROM files as f
+                JOIN file_versions as fv ON fv.file_id = f.id
+                WHERE f.id = $1 AND f.deleted_at IS NULL`,
                 [fileId]
             );
 
@@ -363,7 +444,11 @@ const fileController = {
         }
     },
 
-
+    getUploadSessionStatus: async (req, res) => {
+        return res.status(501).json({
+            message: "completeMultipartUpload chưa được implement"
+        });
+    },
 
 
     abortMultipartUpload: async (req, res) => {
