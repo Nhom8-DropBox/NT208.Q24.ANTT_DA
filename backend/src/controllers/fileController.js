@@ -14,8 +14,8 @@ const fileController = {
         try {
             // Kiểm tra xem đã có session nào đang pending cho file này chưa (dựa vào fileId và owner_id)
             const existSession = await pool.query(
-                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND filename = $2 AND status = 'pending' AND expires_at > NOW()`,
-                [userId, filename]
+                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND file_id = $2 AND filename = $3 AND status = 'pending' AND expires_at > NOW()`,
+                [userId, fileId , filename]
             );
 
             if (existSession.rows.length > 0) {
@@ -63,8 +63,8 @@ const fileController = {
 
             const existFile = await pool.query(
                 `SELECT * FROM files 
-                WHERE owner_id = $1 AND name = $2 AND mime_type = $3 `,
-                [userId, filename, mimeType] 
+                WHERE owner_id = $1 AND name = $2 AND mime_type = $3 AND deleted_at = $4 `,
+                [userId, filename, mimeType,null] 
             )
             if (existFile.rows.length > 0){
                 const file = existFile.rows[0];
@@ -367,12 +367,13 @@ const fileController = {
             );
 
             }
+            
 
             await pool.query(
                 `UPDATE upload_sessions
-                SET status = $1
-                WHERE id = $2`,
-                ["completed", sessionId]
+                SET status = $1 
+                WHERE id = $3`,
+                ["completed",  sessionId]
             );
 
 

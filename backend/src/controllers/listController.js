@@ -5,19 +5,54 @@ import { completeUpload, createMultipartUpload, getPartPresignedUrl, GetDownload
 const listController = {
     getFiles: async (req, res ) => {
         const userID = req.user.userID;
+        const keyword = req.query.search?.trim() || "";
 
         try {
+            if (!keyword){
+
+                const result = await pool.query(
+                    `SELECT f.id, f.name, f.mime_type, f.created_at, fv.version_no , fv.size_bytes
+                    FROM files AS f
+                    JOIN file_versions fv ON f.id = fv.file_id
+                    WHERE f.owner_id = $1 AND f.deleted_at IS NULL
+                    AND fv.version_no = (
+                        SELECT MAX(fv2.version_no)
+                        FROM file_versions fv2
+                        WHERE fv2.file_id = f.id
+                    )
+                    ORDER BY f.created_at DESC`,
+                    [userID]
+                );
+
+                return res.status(200).json({
+                    files: result.rows
+                
+                });
+            }
+
             const result = await pool.query(
-                `SELECT f.id, f.name, f.mime_type, f.created_at, f.updated_at
-                FROM files AS f 
+                `SELECT f.id, f.name, f.mime_type, f.created_at, fv.version_no , fv.size_bytes
+                FROM files AS f
+                JOIN file_versions fv ON f.id = fv.file_id
                 WHERE f.owner_id = $1 AND f.deleted_at IS NULL
+                    AND f.name ILIKE $2
+                    AND fv.version_no = (
+                                        SELECT MAX(fv2.version_no)
+                                        FROM file_versions fv2
+                                        WHERE fv2.file_id = f.id
+                                    )
                 ORDER BY f.created_at DESC`,
-                [userID]
+                [userID, `%${keyword}%`]
             );
 
             return res.status(200).json({
                 files: result.rows
             });
+
+
+            
+
+
         
 
 
@@ -266,6 +301,90 @@ const listController = {
             
         } catch (err) {
            console.log(err);
+            return res.status(500).json({
+                message: "Bad Server"
+            });
+        }
+    },
+     
+    restoreVersion: async (req, res) => {
+        const fileId = req.params.id;
+        const versionNo = req.params.versionNo;
+        const userId = req.user.userID;
+
+        try {
+            const fileResult = await pool.query(
+            `SELECT id, owner_id, deleted_at
+            FROM files
+            WHERE id = $1`,
+            [fileId]
+            );
+
+            const file = fileResult.rows[0];
+
+            if (!file) {
+                return res.status(404).json({
+                    message: "Khong tim thay file"
+                });
+            }
+
+            if (file.owner_id !== userId) {
+                return res.status(403).json({
+                    message: "Khong co quyen truy cap file"
+                });
+            }
+
+            if (file.deleted_at) {
+                return res.status(400).json({
+                    message: "File da bi xoa"
+                });
+            }
+
+            const versionResult = await pool.query(
+                `SELECT id, file_id, version_no, s3_key, size_bytes, etag, created_at
+                FROM file_versions
+                WHERE file_id = $1 AND version_no = $2`,
+                [fileId, versionNo]
+            );
+
+            const version = versionResult.rows[0];
+
+            if (!version) {
+                return res.status(404).json({
+                    message: "Khong tim thay version"
+                });
+            }
+
+
+            // Tìm version lớn nhất
+            const maxVersionResult = await pool.query(
+            `SELECT COALESCE(MAX(version_no), 0) AS max_version
+            FROM file_versions
+            WHERE file_id = $1`,
+            [fileId]
+            );
+
+            const maxVersion = maxVersionResult.rows[0].max_version;
+            const nextVersion = Number(maxVersion) + 1;
+
+            const newVersion = await pool.query(
+                `INSERT INTO file_versions (file_id, version_no, s3_key, size_bytes, etag)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id, version_no`,
+                [fileId, nextVersion, version.s3_key, version.size_bytes, version.etag]
+            )
+
+            return res.status(200).json({
+                success: true,
+                fileId: fileId,
+                restoredFromVersionNo: version.version_no,
+                newVersionId: newVersion.rows[0].id,
+                versionNo: newVersion.rows[0].version_no,
+                message: "Restore thanh cong"
+            });
+
+        } catch (err) {
+            console.log(err);
             return res.status(500).json({
                 message: "Bad Server"
             });
