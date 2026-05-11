@@ -15,6 +15,9 @@ router.get("/:id/download-url", fileController.GetPresignedDownloadURL);
 router.get("/", listController.getFiles);
 router.get("/:id", listController.getFileById);
 router.delete("/:id", listController.deleteFile);
+router.get("/:id/versions", listController.getFileVersions);
+router.get("/:id/versions/:versionNo/download-url", listController.getVersionDownloadUrl);
+
 
 
 export default router;

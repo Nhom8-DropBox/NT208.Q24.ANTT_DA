@@ -38,7 +38,7 @@ export async function GetDownloadURL({ key }) {
     const command = new GetObjectCommand({
         Bucket: bucket,
         Key: key,
-        //ResponseContentDisposition: `attachment; filename="note.txt"`,
+        ResponseContentDisposition: `attachment; filename="note.txt"`,
 
     });
     
