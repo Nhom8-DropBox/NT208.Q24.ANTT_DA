@@ -49,7 +49,8 @@ function Dashboard() {
         handleFileChange,
         cancelUpload,
         resumeUpload,
-        removeUpload
+        removeUpload,
+        onClose
     } = useFileUpload();
 
     return (
@@ -77,6 +78,7 @@ function Dashboard() {
                     onCancelUpload={cancelUpload}
                     onResumeUpload={resumeUpload}
                     onRemoveUpload={removeUpload}
+                    onClose={onClose}
                 />
             </div>
 
