@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import axios from 'axios';
 import { fetchWithAuth } from '../utils/api';
 
-export const useFileUpload = () => {
+export const useFileUpload = (onUploadSuccess) => {
     const fileInputRef = useRef(null);
     const [uploadingFiles, setUploadingFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -133,6 +133,11 @@ export const useFileUpload = () => {
             setUploadingFiles(prev => prev.map(f =>
                 f.id === fileId ? { ...f, status: 'success', progress: 100 } : f
             ));
+
+            // Kích hoạt callback nếu có để refresh danh sách file ngoài UI
+            if (onUploadSuccess) {
+                onUploadSuccess();
+            }
 
         } catch (error) {
             if (axios.isCancel(error) || error.name === 'AbortError') {

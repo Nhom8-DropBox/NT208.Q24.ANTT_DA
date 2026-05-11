@@ -4,12 +4,14 @@ import { useToggle } from "../hooks/useToggle.js";
 import ProfilePopUp from "./profile-popup.jsx";
 import UploadBoard from "./uploadBoard.jsx";
 import '../styles/mainContent.css';
-import UploadFiles from "./uploading-files.jsx";
-import { use, useState } from "react";
+import LinksBoard from "./linksBoard.jsx";
+// import UploadFiles from "./uploading-files.jsx";
+// import { use, useState } from "react";
+
 
 function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onDownload, onShare, onVersoning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose }) {
-    const { isOpen, open, close } = useToggle();
-
+    const { isOpen: isLinksOpen, open: openLinks, close: closeLinks } = useToggle();
+    const { isOpen: isProfileOpen, open: openProfile, close: closeProfile } = useToggle();
     return (
         <main className="main-content">
 
@@ -21,14 +23,15 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                 </div>
 
                 <div className="header-actions">
-                    <IconBtn icon="offline_pin" title="Offline preview" />
+                    <IconBtn icon="offline_pin" title="Offline preview" onClick={openLinks} />
                     <IconBtn icon="help" title="Help" />
                     {IconBtn({ icon: 'settings', title: 'Settings', onClick: () => { } })}
-                    <div className="profile-pic" onClick={open}>
+                    <div className="profile-pic" onClick={openProfile}>
                         <span>AN</span>
 
                     </div>
-                    < ProfilePopUp isOpen={isOpen} onClose={close} />
+                    <ProfilePopUp isOpen={isProfileOpen} onClose={closeProfile} />
+                    {isLinksOpen && <LinksBoard onClose={closeLinks} />}
                 </div>
             </header>
 
@@ -41,7 +44,19 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                     <div className="file-list">
                         <Files key='1' Name='TopSecret.txt' Owner='me' Date='30-4-2026' Size='14 MB' Icon='description' onDelete={onDelete} onDownload={onDownload} onShare={onShare} />
                         {data?.files?.map((file) => (
-                            <Files ID={file.id} Name={file.name} Owner={file.from || 'me'} Date={file.date} Size={file.size} Icon={file.icon || 'description'} onDelete={onDelete} onDownload={onDownload} onShare={onShare} onVersoning={onVersoning} />
+                            <Files
+                                key={file.id}
+                                ID={file.id}
+                                Name={file.name}
+                                Owner='me'
+                                Date={new Date(file.created_at).toLocaleDateString()}
+                                Size={file.size_bytes ? (file.size_bytes / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB'}
+                                Icon={'description'}
+                                onDelete={onDelete}
+                                onDownload={onDownload}
+                                onShare={onShare}
+                                onVersoning={onVersoning}
+                            />
                         ))}
                     </div>
                 </section>

@@ -12,10 +12,11 @@ import { useState, useEffect } from 'react';
 
 function Dashboard() {
 
-    const [data, setData] = useState(null); //Dữ liệu file từ DB, dữ liệu storage
+    const [data, setData] = useState({ files: [], user: null, progress: '0%' }); //Dữ liệu file từ DB, dữ liệu storage
     const [activeTab, setActiveTab] = useState('home');
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const { handleDelete } = useDeleteFile();
+    const { handleDelete } = useDeleteFile(setData);
     const { handleDownload } = useDownloadFile();
     const { handleShare } = useShareFile();
     const { handleVersoning } = useFileVersoning();
@@ -23,23 +24,40 @@ function Dashboard() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                //console.log("1. before fetch");
-                const response = await fetchWithAuth(`/dashboard`);
-
-                const result = await response.json();
-                //console.log("2. after fetch");
-                if (!response.ok) {
-                    throw new Error(result.message);
+                // Fetch danh sách files
+                let filesResponse = [];
+                if (activeTab == "home") {
+                    filesResponse = await fetchWithAuth(`/files`);
                 }
-                console.log(result);
-                setData(result);
+                else if (activeTab === "trash") {
+                    filesResponse = await fetchWithAuth(`/files/trash`); // Giả sử vì chưa có bảng trash hay api kiếm trong bảng trash
+                }
+                const filesList = await filesResponse.json();
+                // Fetch thông tin profile và dung lượng (nếu cần thiết cho Sidebar)
+                const profileResponse = await fetchWithAuth(`/dashboard/profile`);
+                const profileResult = await profileResponse.json();
+
+                if (!filesResponse.ok) {
+                    throw new Error(filesList.message || "Lỗi lấy danh sách file");
+                }
+
+                setData({
+                    files: filesList.files || [],
+                    user: profileResult.user,
+                    progress: profileResult.total_storage ?
+                        `${((profileResult.total_storage / (15 * 1024 * 1024 * 1024)) * 100).toFixed(1)}%` : '0%'
+                });
             }
             catch (err) {
-                alert(err.message || "Lỗi kết nối tới server!");
+                console.error("Lỗi fetch data:", err);
             }
         }
         loadData();
-    }, []);
+    }, [refreshTrigger]);
+
+    const handleUploadSuccess = () => {
+        setRefreshTrigger(prev => prev + 1);
+    };
 
     const {
         fileInputRef,
@@ -51,7 +69,7 @@ function Dashboard() {
         resumeUpload,
         removeUpload,
         onClose
-    } = useFileUpload();
+    } = useFileUpload(handleUploadSuccess);
 
     return (
         <div className="Dashboard-Container">
@@ -74,7 +92,7 @@ function Dashboard() {
                     onDelete={handleDelete}
                     onDownload={handleDownload}
                     onShare={handleShare}
-                    onVersoning = {handleVersoning}
+                    onVersoning={handleVersoning}
                     onCancelUpload={cancelUpload}
                     onResumeUpload={resumeUpload}
                     onRemoveUpload={removeUpload}

@@ -4,7 +4,7 @@ import pool from "../db.js"
 const dashboard = {
     mainpage: async (req, res) => // test
     {
-        res.json({progress: `10%`});
+        res.json({progress: `10%`});// pull từ db vềm chuyển thành json và gửi xuống cho fe
     }, 
 
     getProfile: async (req, res) =>
