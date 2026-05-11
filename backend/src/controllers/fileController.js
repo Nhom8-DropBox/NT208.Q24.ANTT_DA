@@ -408,7 +408,9 @@ const fileController = {
                 `SELECT f.id, f.owner_id, f.name, fv.s3_key
                 FROM files as f
                 JOIN file_versions as fv ON fv.file_id = f.id
-                WHERE f.id = $1 AND f.deleted_at IS NULL`,
+                WHERE f.id = $1 AND f.deleted_at IS NULL
+                ORDER BY fv.version_no DESC
+                LIMIT 1`,
                 [fileId]
             );
 
