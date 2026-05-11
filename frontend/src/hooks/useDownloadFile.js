@@ -1,8 +1,8 @@
 import { fetchWithAuth } from "../utils/api";
 
 export const useDownloadFile = () => {
-    
-    // Nhận 2 tham số rời rạc để khớp 100% với cách sếp gọi onDownload(ID, Name)
+
+    // Sửa lại cho hợp mới minIO
     const handleDownload = async (fileId, fileName) => {
         try {
             const res = await fetchWithAuth(`api/${fileId}/generate-link`);
@@ -16,10 +16,10 @@ export const useDownloadFile = () => {
             document.body.appendChild(address);
             address.click();
             address.remove();
-        } catch(error) {
+        } catch (error) {
             alert("Lỗi tải file: " + error.message);
         }
-    } 
+    }
 
     return { handleDownload };
 };
