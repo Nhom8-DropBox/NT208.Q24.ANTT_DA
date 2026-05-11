@@ -54,6 +54,30 @@
     font-family: 'VT323', monospace;
     color: var(--retro-stroke);
     z-index: 100;
+    transition: all 0.5s ease-in-out;
+}
+
+.expand-wrapper {
+    display: grid;
+    grid-template-rows: 1fr; /* 1fr: mở hết cỡ theo nội dung */
+    transition: grid-template-rows 0.5s ease-in-out;
+}
+
+.collapsed{
+    gap: 0;
+    padding-bottom: 0;
+    padding-top: 12px; 
+
+} 
+.expand-wrapper {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.5s ease-in-out;
+    overflow: hidden; 
+}
+
+.collapsed .expand-wrapper {
+    grid-template-rows: 0fr;
 }
 
 .upload-header {
@@ -67,6 +91,7 @@
     margin-bottom: 4px;
     text-transform: uppercase;
 }
+
 
 .upload-header .header-actions {
     display: flex;
@@ -90,6 +115,8 @@
 }
 
 .outer-border {
+    min-height: 0;
+    overflow: hidden;
     border: 3px solid var(--retro-stroke);
     border-radius: 0;
     position: relative;
@@ -103,6 +130,14 @@
     max-height: 160px;
     overflow-y: auto;
     overflow-x: hidden;
+
+}
+
+.collapsed .outer-border {
+    border-width: 0; 
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
 }
 
 .FileManager {
