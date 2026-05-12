@@ -63,10 +63,10 @@ const shareController = {
             );
             if ((await userCheck).rows.length === 0)
             {
-                res.status(403).json({message: "Không có quyền thu hồi links"});
+                return res.status(403).json({message: "Không có quyền thu hồi links"});
             }
             await pool.query(
-                "update share_links set remoke_at = NOW() where id = $1",
+                "update share_links set revoked_at = NOW() where id = $1",
                 [id]
             );
             res.json({message: "Đã thu hồi links thành công"});

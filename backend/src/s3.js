@@ -11,9 +11,11 @@ import { CompleteMultipartUploadCommand } from "@aws-sdk/client-s3";
 
 //import download
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+//import delete
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
-
-
+//import abort
+import { AbortMultipartUploadCommand } from "@aws-sdk/client-s3";
 
 const endpoint = process.env.MINIO_ENDPOINT;
 const port = process.env.MINIO_PORT;
@@ -48,20 +50,13 @@ export async function GetDownloadURL({ key }) {
 }
 
 export async function deleteObject(s3Key) {
-    // const AWS = await import("aws-sdk");
-    // const s3 = new AWS.S3({
-    //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    //     region: process.env.AWS_REGION,
-    // });
-
-    // const params = {
-    //     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    //     Key: s3Key
-    // };
-    // return s3.deleteObject(params).promise();
-    console.log("Deleted object with key: " + s3Key);
+    const command = new DeleteObjectCommand({
+        Bucket: bucket,
+        Key: s3Key
+    });
+    return s3Client.send(command);
 }
+
 
 
 
@@ -117,4 +112,12 @@ export async function completeUpload({ key, uploadId, parts }) {
     etag: response.ETag
   }
 
+}
+export async function abortUpload({ key, uploadId }) {
+    const command = new AbortMultipartUploadCommand({
+        Bucket: bucket,
+        Key: key,
+        UploadId: uploadId
+    });
+    return s3Client.send(command);
 }
