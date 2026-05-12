@@ -1,5 +1,5 @@
 import pool from "../db.js";
-import { completeUpload, createMultipartUpload, getPartPresignedUrl, GetDownloadURL } from "../s3.js";
+import { completeUpload, createMultipartUpload, getPartPresignedUrl, GetDownloadURL, deleteObject, abortUpload } from "../s3.js";
 
 const fileController = {
     initMultipartUpload: async (req, res) => {
@@ -14,8 +14,8 @@ const fileController = {
         try {
             // Kiểm tra xem đã có session nào đang pending cho file này chưa (dựa vào fileId và owner_id)
             const existSession = await pool.query(
-                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND filename = $2 AND status = 'pending' AND expires_at > NOW()`,
-                [userId, filename]
+                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND file_id = $2 AND filename = $3 AND status = 'pending' AND expires_at > NOW()`,
+                [userId, fileId , filename]
             );
 
             if (existSession.rows.length > 0) {
@@ -63,8 +63,8 @@ const fileController = {
 
             const existFile = await pool.query(
                 `SELECT * FROM files 
-                WHERE owner_id = $1 AND name = $2 AND mime_type = $3 `,
-                [userId, filename, mimeType] 
+                WHERE owner_id = $1 AND name = $2 AND mime_type = $3 AND deleted_at = $4 `,
+                [userId, filename, mimeType,null] 
             )
             if (existFile.rows.length > 0){
                 const file = existFile.rows[0];
@@ -333,6 +333,30 @@ const fileController = {
                     [session.file_id, nextVersion, session.s3_key, totalSize, completeResult.etag]
                 );
 
+                // Giới hạn 5 versions
+                const countResult = await pool.query(
+                    `SELECT COUNT(*) as total FROM file_versions WHERE file_id = $1`,
+                    [session.file_id]
+                );
+                const total = parseInt(countResult.rows[0].total);
+
+                if (total > 5) {
+                    const oldestResult = await pool.query(
+                        `SELECT id, s3_key FROM file_versions
+                        WHERE file_id = $1
+                        ORDER BY version_no ASC
+                        LIMIT 1`,
+                        [session.file_id]
+                    );
+                    const oldest = oldestResult.rows[0];
+
+                    await deleteObject(oldest.s3_key);  
+
+                    await pool.query(
+                        `DELETE FROM file_versions WHERE id = $1`,
+                        [oldest.id]
+                    );
+                }
 
                 await pool.query(
                     `UPDATE upload_sessions
@@ -367,12 +391,13 @@ const fileController = {
             );
 
             }
+            
 
             await pool.query(
                 `UPDATE upload_sessions
-                SET status = $1
+                SET status = $1 
                 WHERE id = $2`,
-                ["completed", sessionId]
+                ["completed",  sessionId]
             );
 
 
@@ -408,7 +433,9 @@ const fileController = {
                 `SELECT f.id, f.owner_id, f.name, fv.s3_key
                 FROM files as f
                 JOIN file_versions as fv ON fv.file_id = f.id
-                WHERE f.id = $1 AND f.deleted_at IS NULL`,
+                WHERE f.id = $1 AND f.deleted_at IS NULL
+                ORDER BY fv.version_no DESC
+                LIMIT 1`,
                 [fileId]
             );
 
@@ -445,17 +472,74 @@ const fileController = {
     },
 
     getUploadSessionStatus: async (req, res) => {
-        return res.status(501).json({
-            message: "completeMultipartUpload chưa được implement"
-        });
-    },
+        const { sessionId } = req.params;
+        const userId = req.user.userID;
 
+        try {
+            const sessionResult = await pool.query(
+                `SELECT * FROM upload_sessions WHERE id = $1`,
+                [sessionId]
+            );
+            const session = sessionResult.rows[0];
+
+            if (!session)
+                return res.status(404).json({ message: "Không tìm thấy session" });
+            if (session.owner_id !== userId)
+                return res.status(403).json({ message: "Không có quyền" });
+
+            const partsResult = await pool.query(
+                `SELECT part_number, size_bytes FROM upload_parts 
+                WHERE upload_session_id = $1 ORDER BY part_number ASC`,
+                [sessionId]
+            );
+
+            return res.status(200).json({
+                sessionId: session.id,
+                status: session.status,
+                fileID: session.chunk_size,
+                filename: session.filename,
+                uploadedParts: partsResult.rows.map(r => r.part_number),
+                chunkSize: session.chunk_size,
+                expiresAt: session.expires_at
+            });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ message: "Lỗi server" });
+        }
+    },
 
     abortMultipartUpload: async (req, res) => {
-        return res.status(501).json({
-            message: "abortMultipartUpload chưa được implement"
-        });
-    },
+        const { sessionId } = req.body;
+        const userId = req.user.userID;
+
+        try {
+            const sessionResult = await pool.query(
+                `SELECT * FROM upload_sessions WHERE id = $1`,
+                [sessionId]
+            );
+            const session = sessionResult.rows[0];
+
+            if (!session)
+                return res.status(404).json({ message: "Không tìm thấy session" });
+            if (session.owner_id !== userId)
+                return res.status(403).json({ message: "Không có quyền" });
+            if (session.status !== 'pending')
+                return res.status(400).json({ message: "Session không ở trạng thái pending" });
+
+            await abortUpload({ key: session.s3_key, uploadId: session.s3_upload_id });
+
+            await pool.query(
+                `UPDATE upload_sessions SET status = 'aborted' WHERE id = $1`,
+                [sessionId]
+            );
+
+            return res.status(200).json({ message: "Đã hủy upload" });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ message: "Lỗi server" });
+        }
+    }
+
 };
 
 export default fileController;

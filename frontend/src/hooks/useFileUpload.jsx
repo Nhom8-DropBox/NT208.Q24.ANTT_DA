@@ -174,6 +174,10 @@ export const useFileUpload = (onUploadSuccess) => {
         setUploadingFiles(prev => prev.filter(f => f.id !== fileId));
     };
 
+    const onClose = () =>
+    {
+        setIsUploading(false);
+    }
     return {
         fileInputRef,
         uploadingFiles,
@@ -182,6 +186,7 @@ export const useFileUpload = (onUploadSuccess) => {
         handleFileChange,
         cancelUpload,
         resumeUpload,
-        removeUpload
+        removeUpload,
+        onClose
     };
 };
