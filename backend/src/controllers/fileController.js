@@ -448,16 +448,44 @@ const fileController = {
     },
 
     getUploadSessionStatus: async (req, res) => {
-        return res.status(501).json({
-            message: "completeMultipartUpload chưa được implement"
-        });
-    },
+        const { sessionId } = req.params;
+        const userId = req.user.userID;
 
+        try {
+            const sessionResult = await pool.query(
+                `SELECT * FROM upload_sessions WHERE id = $1`,
+                [sessionId]
+            );
+            const session = sessionResult.rows[0];
+
+            if (!session)
+                return res.status(404).json({ message: "Không tìm thấy session" });
+            if (session.owner_id !== userId)
+                return res.status(403).json({ message: "Không có quyền" });
+
+            const partsResult = await pool.query(
+                `SELECT part_number, size_bytes FROM upload_parts 
+                WHERE upload_session_id = $1 ORDER BY part_number ASC`,
+                [sessionId]
+            );
+
+            return res.status(200).json({
+                sessionId: session.id,
+                status: session.status,
+                filename: session.filename,
+                uploadedParts: partsResult.rows.map(r => r.part_number),
+                expiresAt: session.expires_at
+            });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ message: "Lỗi server" });
+        }
+    },
 
     abortMultipartUpload: async (req, res) => {
         return res.status(501).json({
             message: "abortMultipartUpload chưa được implement"
-        });
+         });
     },
 };
 
