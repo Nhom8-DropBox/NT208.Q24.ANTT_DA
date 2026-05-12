@@ -71,7 +71,7 @@ const authController = {
                 sameSite: "Strict" // k cho phép các trang web khác gửi cookie
             });
 
-            res.json({accessToken});
+            return res.json({accessToken});
         }
         catch (err)
         {
@@ -82,7 +82,7 @@ const authController = {
 
     refresh: async (req, res) =>
     {
-        const {refreshToken} = req.body;
+        const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) 
         {
             return res.status(400).json({message: 'No refresh token'});
@@ -105,7 +105,7 @@ const authController = {
                 {expiresIn: '15m'}
             );
 
-            res.json({accessToken});
+            return res.json({accessToken});
         }
         catch (err)
         {
@@ -116,13 +116,13 @@ const authController = {
 
     logout: async (req, res) =>
     {
-        const {refreshToken} = req.body;
+        const refreshToken = req.cookies.refreshToken;
         await pool.query(
             "update users set refresh_token = NULL where refresh_token = $1",
             [refreshToken]
         );
 
-        res.json({message: 'Đăng xuất thành công'});
+        return res.json({message: 'Đăng xuất thành công'});
     },
 
     
