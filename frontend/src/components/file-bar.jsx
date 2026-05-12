@@ -3,7 +3,7 @@ import { useToggle } from '../hooks/useToggle';
 import { useClickOutSide } from '../hooks/useClickOutside';
 import { useRef } from 'react';
 
-function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, onDownload, onShare, onVersoning}) {
+function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, onDownload, onShare, onVersoning }) {
     const { isOpen, toggle, close } = useToggle(false);
 
     const menuRef = useRef(null);
@@ -57,7 +57,7 @@ function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, onDownload, onSh
 
                     <button className="menu-item" onClick={() => {
                         close();
-                        onVersoning(ID, Name, Size, 'None',Date)
+                        onVersoning(ID, Name)
                     }}>
                         <span className="material-symbols-rounded">history</span>
                         Version
