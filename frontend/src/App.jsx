@@ -18,7 +18,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<LoginForm />} />
           <Route path="/share" element={<ShareBoard/>} />
-          <Route path="/versoning" element={<VersionHistory />} />
+          <Route path="/versions" element={<VersionHistory />} /> {/*url qua version: /version/fileiid*/}
         </Routes>
       </Router>
 
