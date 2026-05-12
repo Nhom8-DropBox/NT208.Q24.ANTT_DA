@@ -496,8 +496,10 @@ const fileController = {
             return res.status(200).json({
                 sessionId: session.id,
                 status: session.status,
+                fileID: session.chunk_size,
                 filename: session.filename,
                 uploadedParts: partsResult.rows.map(r => r.part_number),
+                chunkSize: session.chunk_size,
                 expiresAt: session.expires_at
             });
         } catch (err) {
