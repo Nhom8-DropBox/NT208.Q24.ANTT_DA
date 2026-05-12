@@ -28,7 +28,7 @@ app.use(`/dashboard`, middlewareAuth, dashboardRoute);
 
 app.use('/share-links', shareRoute)
 app.use('/files', middlewareAuth, filesRoute);
-
+app.use('/public', shareRoute);
 app.listen(PORT, async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 
