@@ -6,5 +6,5 @@ const router = express.Router();
 router.post('/', middlewareAuth, shareController.createShareLink);
 router.get('/', middlewareAuth, shareController.getShareLinks);
 router.delete('/:id', middlewareAuth, shareController.revokeShareLink);
-
+router.get('/share/:token', shareController.getPublicShare);
 export default router;
