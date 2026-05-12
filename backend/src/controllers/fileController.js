@@ -306,7 +306,12 @@ const fileController = {
                 );
                 const existFile = existFileResult.rows[0];
 
-                //if (existFile.)
+                if (!existFile) {
+                    return res.status(404).json({
+                        message: "Khong tim thay file"
+                    });
+                }
+
 
 
                 if (existFile.owner_id !== userId) {
