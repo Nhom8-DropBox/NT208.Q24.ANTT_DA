@@ -77,6 +77,55 @@ const shareController = {
             res.status(500).json({message: "Lỗi Server"});
         }
     },
+    getPublicShare: async (req, res) => {
+        const { token } = req.params;
+
+        try {
+            const result = await pool.query(
+                `SELECT sl.*, f.name as file_name,
+                        fv.s3_key, fv.size_bytes, fv.version_no
+                FROM share_links sl
+                JOIN files f ON sl.file_id = f.id
+                JOIN file_versions fv ON fv.file_id = f.id
+                WHERE sl.token_uuid = $1
+                AND fv.version_no = (
+                    CASE 
+                        WHEN sl.version_id IS NULL 
+                        THEN (SELECT MAX(version_no) FROM file_versions WHERE file_id = f.id)
+                        ELSE (SELECT version_no FROM file_versions WHERE id = sl.version_id)
+                    END
+                )`,
+                [token]
+            );
+
+            if (result.rows.length === 0)
+                return res.status(404).json({ message: "Link không tồn tại" });
+
+            const share = result.rows[0];
+
+            if (share.revoked_at)
+                return res.status(410).json({ message: "Link đã bị thu hồi" });
+
+            if (share.expires_at && new Date(share.expires_at) < new Date())
+                return res.status(410).json({ message: "Link đã hết hạn" });
+
+            let downloadUrl = null;
+            if (share.permission === 'download') {
+                const { downloadURL } = await GetDownloadURL({ key: share.s3_key });
+                downloadUrl = downloadURL;
+            }
+
+            return res.status(200).json({
+                fileName: share.file_name,
+                size: share.size_bytes,
+                permission: share.permission,
+                downloadUrl
+            });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ message: "Lỗi server" });
+        }
+    },
 }
 
 export default shareController;
