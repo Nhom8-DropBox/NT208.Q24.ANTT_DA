@@ -24,7 +24,7 @@ const shareController = {
             );
             res.status(201).json({
                 token,
-                url: `http://localhost:3000/public/share/${token}`
+                url: `http://localhost:5173/download?token=${token}`
             });
         }
         catch (err)
@@ -111,10 +111,12 @@ const shareController = {
                 return res.status(410).json({ message: "Link đã hết hạn" });
 
             let downloadUrl = null;
-            if (share.permission === 'download') {
-                const { downloadURL } = await GetDownloadURL({ key: share.s3_key });
-                downloadUrl = downloadURL;
-            }
+            // Luôn tạo presigned URL để trang download có thể tải file
+            const { downloadURL } = await GetDownloadURL({
+                key: share.s3_key,
+                fileName: share.file_name
+            });
+            downloadUrl = downloadURL;
 
             return res.status(200).json({
                 fileName: share.file_name,

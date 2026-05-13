@@ -36,14 +36,14 @@ const s3Client = new S3Client({
 });
 
 
-export async function GetDownloadURL({ key }) {
+export async function GetDownloadURL({ key, fileName }) {
     const command = new GetObjectCommand({
         Bucket: bucket,
         Key: key,
-
+        ResponseContentDisposition: `attachment; filename="${encodeURIComponent(fileName || key.split('/').pop())}"`
     });
     
-    const downloadURL = await getSignedUrl(s3Client,command,{
+    const downloadURL = await getSignedUrl(s3Client, command, {
         expiresIn: 3600
     });
     return { downloadURL }

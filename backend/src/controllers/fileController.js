@@ -61,21 +61,12 @@ const fileController = {
             );
             const session = result.rows[0];
 
-<<<<<<< HEAD
-            const existFile = await pool.query(
-                `SELECT * FROM files 
-                WHERE owner_id = $1 AND name = $2 AND mime_type = $3 AND deleted_at = $4 `,
-                [userId, filename, mimeType, null]
-            )
-            if (existFile.rows.length > 0) {
-=======
             const existFile = await pool.query(
                 `SELECT * FROM files 
                 WHERE owner_id = $1 AND name = $2 AND mime_type = $3 AND deleted_at IS NULL`,
                 [userId, filename, mimeType] 
             )
             if (existFile.rows.length > 0){
->>>>>>> efc783dbca31276b9e3873959d2096689f3617f0
                 const file = existFile.rows[0];
                 await pool.query(
                     `UPDATE upload_sessions
@@ -401,21 +392,12 @@ const fileController = {
 
             }
             else {
-<<<<<<< HEAD
-                const fileResult = await pool.query(
-                    `INSERT INTO files (owner_id, name, mime_type)
-                VALUES ($1, $2, $3)
-                RETURNING id`,
-                    [session.owner_id, session.filename, null]
-                );
-=======
                 const fileResult = await pool.query(
                 `INSERT INTO files (owner_id, name, mime_type)
                 VALUES ($1, $2, $3)
                 RETURNING id`,
                 [session.owner_id, session.filename, session.mime_type]
             );
->>>>>>> efc783dbca31276b9e3873959d2096689f3617f0
 
                 const fileId = fileResult.rows[0].id;
 
@@ -488,7 +470,7 @@ const fileController = {
                 });
             }
 
-            const { downloadURL } = await GetDownloadURL({ key: file.s3_key })
+            const { downloadURL } = await GetDownloadURL({ key: file.s3_key, fileName: file.name })
 
             return res.status(200).json({
                 fileId: file.id,
