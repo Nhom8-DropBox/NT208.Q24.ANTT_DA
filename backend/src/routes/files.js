@@ -12,10 +12,10 @@ router.get("/upload/:sessionId/status", fileController.getUploadSessionStatus);
 router.post("/upload/complete", fileController.completeMultipartUpload);
 router.post("/upload/abort", fileController.abortMultipartUpload);
 
-// Static routes trước dynamic /:id
+// Static routes
 router.get("/", listController.getFiles);
-router.get("/trash", listController.getTrash);        // phải trước /:id
-router.post("/resolve", listController.resolveFile);  // phải trước /:id
+router.get("/trash", listController.getTrash);
+router.post("/resolve", listController.resolveFile);
 
 // Dynamic routes
 router.get("/:id", listController.getFileById);

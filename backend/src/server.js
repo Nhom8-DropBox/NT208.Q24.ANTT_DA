@@ -16,8 +16,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cookieParser()); // bật parser cookie để parser trường cookie của refresh token
 
 app.use(cors({
-    origin: process.env.FE_URL, // chỉ định front end có thể trả về dữ liệu nhạy cảm (cookie)
-    credentials: true
+  origin: process.env.FE_URL, // chỉ định front end có thể trả về dữ liệu nhạy cảm (cookie)
+  credentials: true
 }));
 
 app.use(express.json());
@@ -30,7 +30,7 @@ app.use('/share-links', shareRoute)
 app.use('/files', middlewareAuth, filesRoute);
 app.use('/public', shareRoute);
 app.listen(PORT, async () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 
   // ==========================================
   // 🛠️ ĐOẠN CODE DEBUG DATABASE (TẦNG 1)
@@ -38,11 +38,11 @@ app.listen(PORT, async () => {
   // ==========================================
   try {
     const client = await pool.connect();
-    console.log("✅ Kết nối Database thành công!");
+    console.log("Kết nối Database thành công!");
     client.release(); // Trả kết nối lại cho Pool sau khi test xong
   } catch (err) {
-    console.error("❌ Lỗi kết nối Database ngay lúc khởi động:");
-    console.error("👉 Nguyên nhân:", err.message);
+    console.error("Lỗi kết nối Database ngay lúc khởi động:");
+    console.error("Nguyên nhân:", err.message);
   }
   // ==========================================
 });

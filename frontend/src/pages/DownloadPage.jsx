@@ -64,7 +64,8 @@ export default function DownloadPage() {
     return (
         <div className="DownloadContainer">
             <div className="logo-container">
-                <img src={logo} className="brand-logo" alt="logo" />
+
+                <img src={logo} className="brand-logo" />
                 <div className="brand-text">Sakura Cloud</div>
             </div>
 
