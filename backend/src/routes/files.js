@@ -11,15 +11,19 @@ router.post("/upload/part-complete", fileController.confirmUploadPart);
 router.get("/upload/:sessionId/status", fileController.getUploadSessionStatus);
 router.post("/upload/complete", fileController.completeMultipartUpload);
 router.post("/upload/abort", fileController.abortMultipartUpload);
-router.get("/:id/download-url", fileController.GetPresignedDownloadURL);
+
+// Static routes trước dynamic /:id
 router.get("/", listController.getFiles);
+router.get("/trash", listController.getTrash);        // phải trước /:id
+router.post("/resolve", listController.resolveFile);  // phải trước /:id
+
+// Dynamic routes
 router.get("/:id", listController.getFileById);
 router.delete("/:id", listController.deleteFile);
-router.get("/trash", listController.getTrash);
+router.get("/:id/download-url", fileController.GetPresignedDownloadURL);
 router.get("/:id/versions", listController.getFileVersions);
 router.get("/:id/versions/:versionNo/download-url", listController.getVersionDownloadUrl);
 router.post("/:id/versions/:versionNo/restore", listController.restoreVersion);
-router.post("/resolve", listController.resolveFile);
 
 
 

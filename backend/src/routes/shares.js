@@ -3,8 +3,9 @@ import middlewareAuth from '../middleware/auth.js'
 import express from 'express';
 const router = express.Router();
 
+router.get('/share/:token', shareController.getPublicShare);
 router.post('/', middlewareAuth, shareController.createShareLink);
 router.get('/', middlewareAuth, shareController.getShareLinks);
 router.delete('/:id', middlewareAuth, shareController.revokeShareLink);
-router.get('/share/:token', shareController.getPublicShare);
+
 export default router;

@@ -32,21 +32,21 @@ function Dashboard() {
                 let fetchUrl = '/files'; // Mặc định là home
                 if (activeTab === 'trash') {
                     fetchUrl = '/files/trash';
-                } else if (activeTab === 'myfiles') {
+                } else if (activeTab === 'home' || activeTab === 'myfiles') {
                     fetchUrl = '/files'; // Cập nhật lại endpoint này tùy theo logic backend của bạn
                 }
                 const filesResponse = await fetchWithAuth(fetchUrl);
                 const filesData = await filesResponse.json();
 
                 if (!filesResponse.ok) {
-                    throw new Error(filesList.message || "Lỗi lấy danh sách file");
+                    throw new Error(filesData.message || "Lỗi lấy danh sách file");
                 }
 
                 const profileResponse = await fetchWithAuth(`/dashboard/profile`);
                 const profileResult = await profileResponse.json();
 
                 setData({
-                    files: filesList.files || [],
+                    files: filesData.files || [],
                     user: profileResult.user,
                     progress: profileResult.total_storage ?
                         `${((profileResult.total_storage / (15 * 1024 * 1024 * 1024)) * 100).toFixed(1)}%` : '0%'

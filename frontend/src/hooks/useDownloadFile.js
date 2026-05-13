@@ -2,16 +2,28 @@ import { fetchWithAuth } from "../utils/api";
 
 export const useDownloadFile = () => {
 
-    // Sửa lại cho hợp mới minIO
-    const handleDownload = async (fileId, fileName) => {
+    const handleDownload = (fileId, fileName) => {
+
+        const safeFileName = encodeURIComponent(fileName);
+
+        const url = `/download?fileId=${fileId}&fileName=${safeFileName}`;
+
+        window.open(url, '_blank', 'noopener,noreferrer');
+    };
+    /**
+     * Dùng ở màn hình chính (Dashboard).
+     * Tải phiên bản MỚI NHẤT của file theo fileId.
+     * Endpoint: GET /files/:id/download-url
+     */
+    const handlePresignedDownloadUrl = async (fileId, fileName) => {
         try {
-            const res = await fetchWithAuth(`api/${fileId}/generate-link`);
+            const res = await fetchWithAuth(`/files/${fileId}/download-url`);
             const data = await res.json();
 
-            if (!res.ok) throw new Error("Không lấy được link tải");
+            if (!res.ok) throw new Error(data.message || "Không lấy được link tải");
 
-            const address = document.createElement('a');
-            address.href = data.signedUrl;  // Mong đợi biến signedUrl chứa đường dẫn tải
+            const address = document.createElement("a");
+            address.href = data.downloadURL;
             address.download = fileName;
             document.body.appendChild(address);
             address.click();
@@ -19,7 +31,30 @@ export const useDownloadFile = () => {
         } catch (error) {
             alert("Lỗi tải file: " + error.message);
         }
-    }
+    };
 
-    return { handleDownload };
+    /**
+     * Dùng ở màn hình lịch sử phiên bản (Versioning).
+     * Tải đúng VERSION được chỉ định theo fileId + versionNo.
+     * Endpoint: GET /files/:id/versions/:versionNo/download-url
+     */
+    const handleVersionDownloadUrl = async (fileId, versionNo, fileName) => {
+        try {
+            const res = await fetchWithAuth(`/files/${fileId}/versions/${versionNo}/download-url`);
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.message || "Không lấy được link tải version");
+
+            const address = document.createElement("a");
+            address.href = data.downloadURL;
+            address.download = fileName;
+            document.body.appendChild(address);
+            address.click();
+            address.remove();
+        } catch (error) {
+            alert("Lỗi tải file version: " + error.message);
+        }
+    };
+
+    return { handlePresignedDownloadUrl, handleVersionDownloadUrl, handleDownload };
 };

@@ -14,8 +14,8 @@ const fileController = {
         try {
             // Kiểm tra xem đã có session nào đang pending cho file này chưa (dựa vào fileId và owner_id)
             const existSession = await pool.query(
-                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND file_id = $2 AND filename = $3 AND status = 'pending' AND expires_at > NOW()`,
-                [userId, fileId , filename]
+                `SELECT * FROM upload_sessions WHERE owner_id = $1 AND filename = $2 AND status = 'pending' AND expires_at > NOW()`,
+                [userId, filename]
             );
 
             if (existSession.rows.length > 0) {
@@ -84,7 +84,7 @@ const fileController = {
                     message: "Tạo session upload mới thành công!"
                 });
             }
-            else{
+            else {
 
 
                 return res.status(201).json({
@@ -297,7 +297,7 @@ const fileController = {
 
             const totalSize = sizeResult.rows[0].total_size
 
-            if (session.file_id){
+            if (session.file_id) {
                 const existFileResult = await pool.query(
                     `SELECT id, owner_id, deleted_at
                     FROM files
@@ -319,7 +319,7 @@ const fileController = {
                         message: "Ban khong co quyen upload file nay"
                     })
                 }
-                if (existFile.deleted_at){
+                if (existFile.deleted_at) {
                     return res.status(403).json({
                         message: "file nay da bi xoa"
                     })
@@ -355,6 +355,7 @@ const fileController = {
                     );
                     const oldest = oldestResult.rows[0];
 
+                    // await deleteObject(oldest.s3_key);
                     const sameKeyResult = await pool.query(
                         `SELECT COUNT(*) AS total
                         FROM file_versions
@@ -380,7 +381,7 @@ const fileController = {
                     WHERE id = $2`,
                     ["completed", sessionId]
                 );
-                
+
                 return res.status(200).json({
                     success: true,
                     sessionId: sessionId,
@@ -398,22 +399,22 @@ const fileController = {
                 [session.owner_id, session.filename, session.mime_type]
             );
 
-            const fileId = fileResult.rows[0].id;
+                const fileId = fileResult.rows[0].id;
 
-            await pool.query(
-                `INSERT INTO file_versions (file_id, version_no, s3_key, size_bytes, etag)
+                await pool.query(
+                    `INSERT INTO file_versions (file_id, version_no, s3_key, size_bytes, etag)
                 VALUES ($1, $2, $3, $4, $5)`,
-                [fileId, 1, session.s3_key, totalSize, completeResult.etag]
-            );
+                    [fileId, 1, session.s3_key, totalSize, completeResult.etag]
+                );
 
             }
-            
+
 
             await pool.query(
                 `UPDATE upload_sessions
                 SET status = $1 
                 WHERE id = $2`,
-                ["completed",  sessionId]
+                ["completed", sessionId]
             );
 
 
@@ -469,7 +470,7 @@ const fileController = {
                 });
             }
 
-            const { downloadURL } = await GetDownloadURL({ key: file.s3_key })
+            const { downloadURL } = await GetDownloadURL({ key: file.s3_key, fileName: file.name })
 
             return res.status(200).json({
                 fileId: file.id,

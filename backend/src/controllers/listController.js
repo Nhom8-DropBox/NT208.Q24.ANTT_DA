@@ -3,12 +3,12 @@ import { GetDownloadURL, deleteObject } from "../s3.js";
 
 
 const listController = {
-    getFiles: async (req, res ) => {
+    getFiles: async (req, res) => {
         const userID = req.user.userID;
         const keyword = req.query.search?.trim() || "";
 
         try {
-            if (!keyword){
+            if (!keyword) {
 
                 const result = await pool.query(
                     `SELECT f.id, f.name, f.mime_type, f.created_at, fv.version_no , fv.size_bytes
@@ -26,7 +26,7 @@ const listController = {
 
                 return res.status(200).json({
                     files: result.rows
-                
+
                 });
             }
 
@@ -50,10 +50,10 @@ const listController = {
             });
 
 
-            
 
 
-        
+
+
 
 
         } catch (err) {
@@ -63,6 +63,7 @@ const listController = {
             });
         }
     },
+
 
     resolveFile: async (req, res) => {
         const { filename, mimeType } = req.body;
@@ -97,7 +98,7 @@ const listController = {
 
         } catch (err) {
             console.log(err);
-                return res.status(500).json({
+            return res.status(500).json({
                 message: "Bad Server"
             });
         }
@@ -105,9 +106,9 @@ const listController = {
 
 
 
-    getFileById: async (req , res) =>{
+    getFileById: async (req, res) => {
         const fileId = req.params.id;
-        const userID = req.user.userID; 
+        const userID = req.user.userID;
         try {
             const result = await pool.query(
                 `SELECT f.id, f.owner_id, f.name, f.mime_type, f.created_at, f.updated_at, fv.size_bytes
@@ -136,7 +137,7 @@ const listController = {
 
 
 
-            
+
         } catch (err) {
             console.log(err);
             return res.status(500).json({
@@ -146,19 +147,19 @@ const listController = {
 
     },
 
-    deleteFile: async (req, res)=>{
+    deleteFile: async (req, res) => {
 
         const fileId = req.params.id;
         const userID = req.user.userID;
 
         try {
-           const result = await pool.query(
+            const result = await pool.query(
                 `SELECT id, owner_id, deleted_at
                 FROM files
                 WHERE id = $1`,
                 [fileId]
             );
-            
+
             const file = result.rows[0];
 
             if (!file) {
@@ -173,11 +174,11 @@ const listController = {
             }
 
             if (file.deleted_at) {
-            return res.status(400).json({
-                message: "File da bi xoa truoc do"
-            });
+                return res.status(400).json({
+                    message: "File da bi xoa truoc do"
+                });
             }
-            
+
             await pool.query(
                 `UPDATE files
                 SET deleted_at = NOW()
@@ -198,34 +199,32 @@ const listController = {
                 message: "Bad Server"
             });
         }
-        
+
 
     },
 
-    getTrash: async (req, res) =>
-    {
+    getTrash: async (req, res) => {
         const userID = req.user.userID;
 
-        try
-        {
+        try {
             const trashResult = await pool.query(
-            `SELECT id, name, mime_type, deleted_at, created_at, updated_at
+                `SELECT id, name, mime_type, deleted_at, created_at, updated_at
             FROM files
             WHERE owner_id = $1 AND deleted_at IS NOT NULL
             ORDER BY deleted_at DESC`, // Sắp xếp file mới xóa lên đầu
-            [userID]
+                [userID]
             );
 
-            const trashFile = trashResult.rows;
+            const trashFiles = trashResult.rows;
 
-            if (trashFiles.length === 0) {
+            if (trashFiles?.length === 0) {
                 return res.status(200).json({
                     message: "Thùng rác trống",
                     files: []
                 });
             }
 
-            const formattedTrashFiles = trashFiles.map((file) => ({
+            const formattedTrashFiles = trashFiles?.map((file) => ({
                 id: file.id,
                 name: file.name,
                 mimeType: file.mime_type,
@@ -237,8 +236,7 @@ const listController = {
                 files: formattedTrashFiles
             });
         }
-        catch(err)
-        {
+        catch (err) {
             console.error("Lỗi getTrash: ", err);
             return res.status(500).json({
                 message: "Bad Server"
@@ -285,7 +283,7 @@ const listController = {
                 message: "Bad Server"
             });
         }
-    };
+    },
 
     getFileVersions: async (req, res) => {
         const fileID = req.params.id;
@@ -327,7 +325,7 @@ const listController = {
                 [fileID]
             );
 
-            const versions = versionResult.rows ;
+            const versions = versionResult.rows;
 
 
             const maxVersion = versions[0].version_no;
@@ -349,9 +347,9 @@ const listController = {
                 versions: formattedVersions
             });
 
-            
 
-            
+
+
         } catch (err) {
             console.log(err);
             return res.status(500).json({
@@ -367,7 +365,7 @@ const listController = {
 
         try {
             const fileResult = await pool.query(
-                `SELECT id, owner_id, deleted_at
+                `SELECT id, owner_id, name, deleted_at
                 FROM files
                 WHERE id = $1`,
                 [fileId]
@@ -397,7 +395,7 @@ const listController = {
                 `SELECT id, file_id, version_no, s3_key, size_bytes, etag, created_at
                 FROM file_versions
                 WHERE file_id = $1 AND version_no = $2`,
-                [fileId, versionNo]
+                [fileId, versionNo || 1]
             );
 
             const version = versionResult.rows[0];
@@ -410,9 +408,10 @@ const listController = {
             }
 
             const { downloadURL } = await GetDownloadURL({
-                key: version.s3_key
+                key: version.s3_key,
+                fileName: file.name
             });
-            
+
             return res.status(200).json({
                 fileId: fileId,
                 versionId: version.id,
@@ -423,15 +422,15 @@ const listController = {
 
 
 
-            
+
         } catch (err) {
-           console.log(err);
+            console.log(err);
             return res.status(500).json({
                 message: "Bad Server"
             });
         }
     },
-     
+
     restoreVersion: async (req, res) => {
         const fileId = req.params.id;
         const versionNo = req.params.versionNo;
@@ -439,10 +438,10 @@ const listController = {
 
         try {
             const fileResult = await pool.query(
-            `SELECT id, owner_id, deleted_at
+                `SELECT id, owner_id, deleted_at
             FROM files
             WHERE id = $1`,
-            [fileId]
+                [fileId]
             );
 
             const file = fileResult.rows[0];
@@ -483,10 +482,10 @@ const listController = {
 
             // Tìm version lớn nhất
             const maxVersionResult = await pool.query(
-            `SELECT COALESCE(MAX(version_no), 0) AS max_version
+                `SELECT COALESCE(MAX(version_no), 0) AS max_version
             FROM file_versions
             WHERE file_id = $1`,
-            [fileId]
+                [fileId]
             );
 
             const maxVersion = maxVersionResult.rows[0].max_version;

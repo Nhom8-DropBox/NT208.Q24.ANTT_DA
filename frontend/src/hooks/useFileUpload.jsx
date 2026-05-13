@@ -41,9 +41,9 @@ export const useFileUpload = (onUploadSuccess) => {
 
     const uploadSingleFileInChunks = async (fileObj) => {
         const file = fileObj.rawFile;
-        const fileId = fileObj.id;
+        const localFileId = fileObj.id; // ID cục bộ dùng để cập nhật state
         const controller = new AbortController();
-        abortControllers.current[fileId] = controller;
+        abortControllers.current[localFileId] = controller;
 
 
         try {
@@ -57,7 +57,7 @@ export const useFileUpload = (onUploadSuccess) => {
                 })
             });
 
-            const { fileId, name, mimeType = [] } = await RespondFileID.json();
+            const { fileId: serverFileId, name, mimeType = [] } = await RespondFileID.json(); // fileId từ server
 
             //
             const Respond = await fetchWithAuth("/files/upload/init", {
@@ -66,7 +66,7 @@ export const useFileUpload = (onUploadSuccess) => {
                     filename: file.name,
                     mimeType: file.type,
                     sizeBytes: file.size,
-                    fileId: fileId // nếu server trả về null ->? file tạo mới, nếu trả về số -> version
+                    fileId: serverFileId // nếu server trả về null -> file tạo mới, nếu trả về số -> version
                 })
             });
             const { sessionId, chunkSize, totalParts, uploadedParts = [] } = await Respond.json();
@@ -76,7 +76,7 @@ export const useFileUpload = (onUploadSuccess) => {
             let completedPartsCount = uploadedParts.length;
             const initialProgress = totalParts > 0 ? Math.round((completedPartsCount / totalParts) * 100) : 0;
             setUploadingFiles(prev => prev.map(f =>
-                f.id === fileId ? { ...f, progress: initialProgress } : f
+                f.id === localFileId ? { ...f, progress: initialProgress } : f
             ));
 
             // Loop upload từng part
@@ -112,7 +112,7 @@ export const useFileUpload = (onUploadSuccess) => {
                         const currentTotal = Math.round((completedPartsCount * (100 / totalParts)) + chunkProgress);
 
                         setUploadingFiles(prev => prev.map(f =>
-                            f.id === fileId ? { ...f, progress: Math.min(currentTotal, 100) } : f
+                            f.id === localFileId ? { ...f, progress: Math.min(currentTotal, 100) } : f
                         ));
                     }
                 });
@@ -144,7 +144,7 @@ export const useFileUpload = (onUploadSuccess) => {
             });
 
             setUploadingFiles(prev => prev.map(f =>
-                f.id === fileId ? { ...f, status: 'success', progress: 100 } : f
+                f.id === localFileId ? { ...f, status: 'success', progress: 100 } : f
             ));
 
             // Kích hoạt callback nếu có để refresh danh sách file ngoài UI
@@ -155,16 +155,16 @@ export const useFileUpload = (onUploadSuccess) => {
         } catch (error) {
             if (axios.isCancel(error) || error.name === 'AbortError') {
                 setUploadingFiles(prev => prev.map(f =>
-                    f.id === fileId ? { ...f, status: 'stopped' } : f
+                    f.id === localFileId ? { ...f, status: 'stopped' } : f
                 ));
             } else {
                 setUploadingFiles(prev => prev.map(f =>
-                    f.id === fileId ? { ...f, status: 'error' } : f
+                    f.id === localFileId ? { ...f, status: 'error' } : f
                 ));
             }
             console.error(` Lỗi upload file ${file.name}:`, error.response?.data || error.message);
         } finally {
-            delete abortControllers.current[fileId];
+            delete abortControllers.current[localFileId];
         }
     };
 
@@ -187,8 +187,7 @@ export const useFileUpload = (onUploadSuccess) => {
         setUploadingFiles(prev => prev.filter(f => f.id !== fileId));
     };
 
-    const onClose = () =>
-    {
+    const onClose = () => {
         setIsUploading(false);
     }
     return {
