@@ -64,8 +64,8 @@ const listController = {
         }
     },
 
-    getFileById: async (req, res) => {
-    //resolveFile: async (req, res) => {
+
+    resolveFile: async (req, res) => {
         const { filename, mimeType } = req.body;
         const userId = req.user.userID;
 

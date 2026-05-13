@@ -1,6 +1,7 @@
 import "../styles/DownloadPage.css"
 import { useSearchParams } from "react-router-dom"
 import { useDownloadFile } from "../hooks/useDownloadFile";
+import logo from "../assets/nova_logo.png"
 
 export default function DownloadPage() {
 	const [searchParams] = useSearchParams();
@@ -12,7 +13,7 @@ export default function DownloadPage() {
 		<div className="DownloadContainer">
 			<div className="logo-container">
 
-				<img src="assets/nova_logo.png" className="brand-logo" />
+				<img src={logo} className="brand-logo" />
 				<div className="brand-text">Sakura Cloud</div>
 			</div>
 
