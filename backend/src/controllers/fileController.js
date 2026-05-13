@@ -54,19 +54,28 @@ const fileController = {
             const { uploadId } = multipartResult;
 
             const result = await pool.query(
-                `INSERT INTO upload_sessions (owner_id, file_id, filename, s3_upload_id, s3_key, chunk_size, status, expires_at )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+                `INSERT INTO upload_sessions (owner_id, file_id, filename, mime_type, s3_upload_id, s3_key, chunk_size, status, expires_at )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
                 RETURNING id `,
-                [userId, null, filename, uploadId, s3Key, chunkSize, 'pending', expiresAt]
+                [userId, null, filename, mimeType, uploadId, s3Key, chunkSize, 'pending', expiresAt]
             );
             const session = result.rows[0];
 
+<<<<<<< HEAD
             const existFile = await pool.query(
                 `SELECT * FROM files 
                 WHERE owner_id = $1 AND name = $2 AND mime_type = $3 AND deleted_at = $4 `,
                 [userId, filename, mimeType, null]
             )
             if (existFile.rows.length > 0) {
+=======
+            const existFile = await pool.query(
+                `SELECT * FROM files 
+                WHERE owner_id = $1 AND name = $2 AND mime_type = $3 AND deleted_at IS NULL`,
+                [userId, filename, mimeType] 
+            )
+            if (existFile.rows.length > 0){
+>>>>>>> efc783dbca31276b9e3873959d2096689f3617f0
                 const file = existFile.rows[0];
                 await pool.query(
                     `UPDATE upload_sessions
@@ -392,12 +401,21 @@ const fileController = {
 
             }
             else {
+<<<<<<< HEAD
                 const fileResult = await pool.query(
                     `INSERT INTO files (owner_id, name, mime_type)
                 VALUES ($1, $2, $3)
                 RETURNING id`,
                     [session.owner_id, session.filename, null]
                 );
+=======
+                const fileResult = await pool.query(
+                `INSERT INTO files (owner_id, name, mime_type)
+                VALUES ($1, $2, $3)
+                RETURNING id`,
+                [session.owner_id, session.filename, session.mime_type]
+            );
+>>>>>>> efc783dbca31276b9e3873959d2096689f3617f0
 
                 const fileId = fileResult.rows[0].id;
 

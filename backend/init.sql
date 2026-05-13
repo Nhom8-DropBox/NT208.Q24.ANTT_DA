@@ -33,6 +33,7 @@ CREATE TABLE upload_sessions (
     owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     file_id INTEGER REFERENCES files(id) ON DELETE SET NULL,
     filename VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100),
     s3_upload_id VARCHAR(255) NOT NULL,
     s3_key VARCHAR(500) NOT NULL,
     chunk_size INTEGER DEFAULT 5242880,

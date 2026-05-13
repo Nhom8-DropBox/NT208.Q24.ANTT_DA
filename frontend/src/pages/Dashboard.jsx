@@ -1,6 +1,7 @@
 import MainContent from "../components/mainContent";
 import SideBar from "../components/sideBar";
 import { useDeleteFile } from "../hooks/useDeleteFile";
+import { useRestoreFile } from "../hooks/useRestoreFile";
 import { useDownloadFile } from "../hooks/useDownloadFile";
 import { useShareFile } from "../hooks/useShareFile.jsx";
 import { useFileVersioning } from "../hooks/useFileVersioning.js";
@@ -16,30 +17,33 @@ function Dashboard() {
     const [activeTab, setActiveTab] = useState('home');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const { handleDelete } = useDeleteFile(setData);
+    const { handleDelete, handleDeletePermanently } = useDeleteFile(setData);
+    const { handleRestore } = useRestoreFile(setData);
     const { handleDownload } = useDownloadFile();
     const { handleShare } = useShareFile();
     const { handleVersioning } = useFileVersioning(); // 
+
+    const currentDeleteAction = activeTab === 'trash' ? handleDeletePermanently : handleDelete;
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 // Fetch danh sách files
-                let filesResponse = [];
-                if (activeTab == "home") {
-                    filesResponse = await fetchWithAuth(`/files`);
+                let fetchUrl = '/files'; // Mặc định là home
+                if (activeTab === 'trash') {
+                    fetchUrl = '/files/trash';
+                } else if (activeTab === 'myfiles') {
+                    fetchUrl = '/files'; // Cập nhật lại endpoint này tùy theo logic backend của bạn
                 }
-                else if (activeTab === "trash") {
-                    filesResponse = await fetchWithAuth(`/files/trash`); // Giả sử vì chưa có bảng trash hay api kiếm trong bảng trash
-                }
-                const filesList = await filesResponse.json();
-                // Fetch thông tin profile và dung lượng (nếu cần thiết cho Sidebar)
-                const profileResponse = await fetchWithAuth(`/dashboard/profile`);
-                const profileResult = await profileResponse.json();
+                const filesResponse = await fetchWithAuth(fetchUrl);
+                const filesData = await filesResponse.json();
 
                 if (!filesResponse.ok) {
                     throw new Error(filesList.message || "Lỗi lấy danh sách file");
                 }
+
+                const profileResponse = await fetchWithAuth(`/dashboard/profile`);
+                const profileResult = await profileResponse.json();
 
                 setData({
                     files: filesList.files || [],
@@ -53,7 +57,7 @@ function Dashboard() {
             }
         }
         loadData();
-    }, [refreshTrigger]);
+    }, [refreshTrigger, activeTab]);
 
     const handleUploadSuccess = () => {
         setRefreshTrigger(prev => prev + 1);
@@ -89,7 +93,8 @@ function Dashboard() {
                     isUploading={isUploading}
                     uploadingFiles={uploadingFiles}
                     activeTab={activeTab}
-                    onDelete={handleDelete}
+                    onDelete={currentDeleteAction}
+                    onRestore={handleRestore}
                     onDownload={handleDownload}
                     onShare={handleShare}
                     onVersioning={handleVersioning}

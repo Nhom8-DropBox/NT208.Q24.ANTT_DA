@@ -203,6 +203,90 @@ const listController = {
 
     },
 
+    getTrash: async (req, res) =>
+    {
+        const userID = req.user.userID;
+
+        try
+        {
+            const trashResult = await pool.query(
+            `SELECT id, name, mime_type, deleted_at, created_at, updated_at
+            FROM files
+            WHERE owner_id = $1 AND deleted_at IS NOT NULL
+            ORDER BY deleted_at DESC`, // Sắp xếp file mới xóa lên đầu
+            [userID]
+            );
+
+            const trashFile = trashResult.rows;
+
+            if (trashFiles.length === 0) {
+                return res.status(200).json({
+                    message: "Thùng rác trống",
+                    files: []
+                });
+            }
+
+            const formattedTrashFiles = trashFiles.map((file) => ({
+                id: file.id,
+                name: file.name,
+                mimeType: file.mime_type,
+                deletedAt: file.deleted_at,
+            }));
+
+            return res.status(200).json({
+                totalItems: formattedTrashFiles.length,
+                files: formattedTrashFiles
+            });
+        }
+        catch(err)
+        {
+            console.error("Lỗi getTrash: ", err);
+            return res.status(500).json({
+                message: "Bad Server"
+            });
+        }
+    },
+
+    deletePermanent: async (req, res) => {
+        const fileID = req.params.id;
+        const userID = req.user.userID;
+
+        try {
+            // BƯỚC 1: Lấy danh sách s3_key của tất cả version để xóa trên S3 AWS
+            const versionsResult = await pool.query(
+                `SELECT s3_key FROM file_versions WHERE file_id = $1`,
+                [fileID]
+            );
+            const s3Keys = versionsResult.rows.map(row => row.s3_key);
+
+            // TODO: Viết hàm gọi AWS SDK để xóa mảng s3Keys này trên S3 bucket của bạn
+            // Ví dụ: await s3.deleteObjects({ Bucket: '...', Delete: { Objects: s3Keys.map(key => ({Key: key})) } }).promise();
+
+            // BƯỚC 2: Xóa vĩnh viễn khỏi Database (Cascade sẽ tự dọn các bảng file_versions, share_links...)
+            const deleteResult = await pool.query(
+                `DELETE FROM files 
+                WHERE id = $1 AND owner_id = $2 
+                RETURNING id`,
+                [fileID, userID]
+            );
+
+            if (deleteResult.rowCount === 0) {
+                return res.status(404).json({
+                    message: "Không tìm thấy file hoặc bạn không có quyền xóa"
+                });
+            }
+
+            return res.status(200).json({
+                message: "Đã xóa file vĩnh viễn"
+            });
+
+        } catch (err) {
+            console.error("Lỗi xóa vĩnh viễn:", err);
+            return res.status(500).json({
+                message: "Bad Server"
+            });
+        }
+    };
 
     getFileVersions: async (req, res) => {
         const fileID = req.params.id;
