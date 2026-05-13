@@ -19,7 +19,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<LoginForm />} />
         <Route path="/share" element={<ShareBoard />} />
-        <Route path="/versoning" element={<VersionHistory />} />
+        <Route path="/versions" element={<VersionHistory />} />
         <Route path="/download" element={<DownloadPage />} />
       </Routes>
     </Router>

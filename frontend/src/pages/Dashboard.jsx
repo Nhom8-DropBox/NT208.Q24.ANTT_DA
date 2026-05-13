@@ -3,7 +3,7 @@ import SideBar from "../components/sideBar";
 import { useDeleteFile } from "../hooks/useDeleteFile";
 import { useDownloadFile } from "../hooks/useDownloadFile";
 import { useShareFile } from "../hooks/useShareFile.jsx";
-import { useFileVersoning } from "../hooks/useFileVersioning.js";
+import { useFileVersioning } from "../hooks/useFileVersioning.js";
 import '../styles/UI.css';
 import { fetchWithAuth } from "../utils/api";
 import { useFileUpload } from '../hooks/useFileUpload';
@@ -19,7 +19,7 @@ function Dashboard() {
     const { handleDelete } = useDeleteFile(setData);
     const { handleDownload } = useDownloadFile();
     const { handleShare } = useShareFile();
-    const { handleVersoning } = useFileVersoning();
+    const { handleVersioning } = useFileVersioning(); // 
 
     useEffect(() => {
         const loadData = async () => {
@@ -92,7 +92,7 @@ function Dashboard() {
                     onDelete={handleDelete}
                     onDownload={handleDownload}
                     onShare={handleShare}
-                    onVersoning={handleVersoning}
+                    onVersioning={handleVersioning}
                     onCancelUpload={cancelUpload}
                     onResumeUpload={resumeUpload}
                     onRemoveUpload={removeUpload}
