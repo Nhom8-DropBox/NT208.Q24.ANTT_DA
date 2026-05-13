@@ -3,11 +3,7 @@ import { useToggle } from '../hooks/useToggle';
 import { useClickOutSide } from '../hooks/useClickOutside';
 import { useRef } from 'react';
 
-<<<<<<< HEAD
-function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, onDownload, onShare, onVersoning }) {
-=======
 function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, onDownload, onShare, onVersioning}) {
->>>>>>> 0f2f3125434ec0837609403e5147730d9a8e9918
     const { isOpen, toggle, close } = useToggle(false);
 
     const menuRef = useRef(null);
@@ -61,11 +57,7 @@ function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, onDownload, onSh
 
                     <button className="menu-item" onClick={() => {
                         close();
-<<<<<<< HEAD
-                        onVersoning(ID, Name)
-=======
                         onVersioning(ID, Name) // id dùng để truy xuất, name dùng để hiển thị tên, các biến khác dùng hiển thị tên do be truyền về.
->>>>>>> 0f2f3125434ec0837609403e5147730d9a8e9918
                     }}>
                         <span className="material-symbols-rounded">history</span>
                         Version

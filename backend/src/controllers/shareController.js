@@ -1,4 +1,5 @@
 import pool from '../db.js';
+import crypto from 'crypto';
 import { GetDownloadURL } from '../s3.js';
 
 const shareController = {
