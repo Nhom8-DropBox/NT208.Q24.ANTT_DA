@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_URL = "http://14.225.222.190:3000";
 
 export const fetchWithAuth = async (url, options = {}) => {
     let token = localStorage.getItem("accessToken");
