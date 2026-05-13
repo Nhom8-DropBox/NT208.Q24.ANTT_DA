@@ -1,20 +1,39 @@
+// hooks/useDeleteFile.js
 import { fetchWithAuth } from "../utils/api";
-
-
 
 export const useDeleteFile = (setData) => {
     
-  
+    // xóa mềm (chuyển vào trash)
     const handleDelete = async (fileId) => {
         if (!window.confirm("Bạn có chắc muốn đưa file này vào thùng rác không?")) return;
 
         try {
             const response = await fetchWithAuth(`/files/${fileId}`, {
-                method: 'PUT' 
+                method: 'DELETE' 
             });
 
             if (!response.ok) throw new Error("Lỗi khi xóa file!");
- 
+
+            setData(prevData => ({
+                ...prevData,
+                files: prevData.files?.filter(file => file.id !== fileId) || []
+            }));
+
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+    // xóa cứng 
+    const handleDeletePermanently = async (fileId) => {
+        if (!window.confirm("Bạn có chắc chắn muốn xóa vĩnh viễn file này? Hành động này không thể khôi phục!")) return;
+
+        try {
+            const response = await fetchWithAuth(`/files/${fileId}/permanent`, {
+                method: 'DELETE' 
+            });
+
+            if (!response.ok) throw new Error("Lỗi khi xóa vĩnh viễn file!");
 
             setData(prevData => ({
                 ...prevData,
@@ -26,5 +45,6 @@ export const useDeleteFile = (setData) => {
         }
     };
     
-    return { handleDelete };
+    // Trả về cả 2 hàm để Component có thể dùng
+    return { handleDelete, handleDeletePermanently };
 };

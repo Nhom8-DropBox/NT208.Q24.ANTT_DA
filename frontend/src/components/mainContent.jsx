@@ -9,7 +9,7 @@ import LinksBoard from "./linksBoard.jsx";
 // import { use, useState } from "react";
 
 
-function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onDownload, onShare, onVersioning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose }) {
+function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onRestore, onDownload, onShare, onVersioning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose }) {
     const { isOpen: isLinksOpen, open: openLinks, close: closeLinks } = useToggle();
     const { isOpen: isProfileOpen, open: openProfile, close: closeProfile } = useToggle();
     return (
@@ -52,7 +52,9 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                                 Date={new Date(file.created_at).toLocaleDateString()}
                                 Size={file.size_bytes ? (file.size_bytes / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB'}
                                 Icon={'description'}
+                                activeTab={activeTab} 
                                 onDelete={onDelete}
+                                onRestore={onRestore}
                                 onDownload={onDownload}
                                 onShare={onShare}
                                 onVersioning={onVersioning}
