@@ -306,7 +306,12 @@ const fileController = {
                 );
                 const existFile = existFileResult.rows[0];
 
-                //if (existFile.)
+                if (!existFile) {
+                    return res.status(404).json({
+                        message: "Khong tim thay file"
+                    });
+                }
+
 
 
                 if (existFile.owner_id !== userId) {
@@ -350,7 +355,18 @@ const fileController = {
                     );
                     const oldest = oldestResult.rows[0];
 
-                    await deleteObject(oldest.s3_key);  
+                    const sameKeyResult = await pool.query(
+                        `SELECT COUNT(*) AS total
+                        FROM file_versions
+                        WHERE s3_key = $1 AND id <> $2`,
+                        [oldest.s3_key, oldest.id]
+                    );
+
+                    const sameKeyCount = Number(sameKeyResult.rows[0].total);
+
+                    if (sameKeyCount === 0) {
+                        await deleteObject(oldest.s3_key);
+                    }
 
                     await pool.query(
                         `DELETE FROM file_versions WHERE id = $1`,
@@ -496,7 +512,7 @@ const fileController = {
             return res.status(200).json({
                 sessionId: session.id,
                 status: session.status,
-                fileID: session.chunk_size,
+                fileID: session.file_id,
                 filename: session.filename,
                 uploadedParts: partsResult.rows.map(r => r.part_number),
                 chunkSize: session.chunk_size,
