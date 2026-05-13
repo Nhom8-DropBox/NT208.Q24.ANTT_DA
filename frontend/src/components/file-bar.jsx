@@ -1,6 +1,6 @@
 import '../styles/file.css';
 import { useToggle } from '../hooks/useToggle';
-import { useClickOutSide } from '../hooks/useClickOutSide';
+import { useClickOutSide } from '../hooks/useClickOutSide'; //
 import { useRestoreFile } from '../hooks/useRestoreFile';
 import { useRef } from 'react';
 
