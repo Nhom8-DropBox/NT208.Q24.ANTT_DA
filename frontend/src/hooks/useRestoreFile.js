@@ -33,7 +33,7 @@ export const useRestoreFile = () => {
             const isConfirmed = window.confirm("Bạn có chắc muốn khôi phục file này?");
 
             if (isConfirmed) {
-                const res = await fetchWithAuth(`/files/${fileId}`, {
+                const res = await fetchWithAuth(`/files/${fileId}/restore`, {
                     method: 'POST'
                 });
 
