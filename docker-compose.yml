@@ -23,6 +23,16 @@ services:
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
+  backend:
+    build: ./backend
+    container_name: cloud_storage_be
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env.production
+    depends_on:
+      - postgres
+      - minio
 
 volumes:
   postgres_data:
