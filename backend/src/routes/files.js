@@ -18,6 +18,7 @@ router.delete("/:id", listController.deleteFile);
 router.get("/:id/versions", listController.getFileVersions);
 router.get("/:id/versions/:versionNo/download-url", listController.getVersionDownloadUrl);
 router.post("/:id/versions/:versionNo/restore", listController.restoreVersion);
+router.post("/resolve", listController.resolveFile);
 
 
 

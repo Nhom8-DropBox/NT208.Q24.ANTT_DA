@@ -355,8 +355,6 @@ const fileController = {
                     );
                     const oldest = oldestResult.rows[0];
 
-                    const oldest = oldestResult.rows[0];
-
                     const sameKeyResult = await pool.query(
                         `SELECT COUNT(*) AS total
                         FROM file_versions

@@ -1,5 +1,5 @@
 import pool from "../db.js";
-import { completeUpload, createMultipartUpload, getPartPresignedUrl, GetDownloadURL } from "../s3.js";
+import { GetDownloadURL, deleteObject } from "../s3.js";
 
 
 const listController = {
@@ -63,6 +63,47 @@ const listController = {
             });
         }
     },
+
+    resolveFile: async (req, res) => {
+        const { filename, mimeType } = req.body;
+        const userId = req.user.userID;
+
+        try {
+            const result = await pool.query(
+                `SELECT id, name, mime_type
+                FROM files
+                WHERE owner_id = $1
+                    AND name = $2
+                    AND mime_type = $3
+                    AND deleted_at IS NULL
+                LIMIT 1`,
+                [userId, filename, mimeType]
+            );
+
+            if (result.rows.length === 0) {
+                return res.status(200).json({
+                    fileId: null
+                });
+            }
+
+            const file = result.rows[0];
+
+            return res.status(200).json({
+                fileId: file.id,
+                name: file.name,
+                mimeType: file.mime_type
+            });
+
+
+        } catch (err) {
+            console.log(err);
+                return res.status(500).json({
+                message: "Bad Server"
+            });
+        }
+    },
+
+
 
     getFileById: async (req , res) =>{
         const fileId = req.params.id;
@@ -372,7 +413,47 @@ const listController = {
                 VALUES ($1, $2, $3, $4, $5)
                 RETURNING id, version_no`,
                 [fileId, nextVersion, version.s3_key, version.size_bytes, version.etag]
-            )
+            );
+
+            const countResult = await pool.query(
+                `SELECT COUNT(*) AS total
+                FROM file_versions
+                WHERE file_id = $1`,
+                [fileId]
+            );
+
+            const total = Number(countResult.rows[0].total);
+
+            if (total > 5) {
+                const oldestResult = await pool.query(
+                    `SELECT id, s3_key
+                    FROM file_versions
+                    WHERE file_id = $1
+                    ORDER BY version_no ASC
+                    LIMIT 1`,
+                    [fileId]
+                );
+
+                const oldest = oldestResult.rows[0];
+
+                const sameKeyResult = await pool.query(
+                    `SELECT COUNT(*) AS total
+                    FROM file_versions
+                    WHERE s3_key = $1 AND id <> $2`,
+                    [oldest.s3_key, oldest.id]
+                );
+
+                const sameKeyCount = Number(sameKeyResult.rows[0].total);
+
+                if (sameKeyCount === 0) {
+                    await deleteObject(oldest.s3_key);
+                }
+
+                await pool.query(
+                    `DELETE FROM file_versions WHERE id = $1`,
+                    [oldest.id]
+                );
+            }
 
             return res.status(200).json({
                 success: true,
