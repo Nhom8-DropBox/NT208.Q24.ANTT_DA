@@ -30,7 +30,7 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                         <span>AN</span>
 
                     </div>
-                    <ProfilePopUp isOpen={isProfileOpen} onClose={closeProfile} />
+                    <ProfilePopUp isOpen={isProfileOpen} onClose={closeProfile} progress={data?.progress} />
                     {isLinksOpen && <LinksBoard onClose={closeLinks} />}
                 </div>
             </header>
@@ -52,7 +52,7 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                                 Date={new Date(file.created_at).toLocaleDateString()}
                                 Size={file.size_bytes ? (file.size_bytes / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB'}
                                 Icon={'description'}
-                                activeTab={activeTab} 
+                                activeTab={activeTab}
                                 onDelete={onDelete}
                                 onRestore={onRestore}
                                 onDownload={onDownload}

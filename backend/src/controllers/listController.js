@@ -147,6 +147,59 @@ const listController = {
 
     },
 
+    restoreFile: async (req, res) => {
+
+        const fileId = req.params.id;
+        const userID = req.user.userID;
+
+        try {
+            const result = await pool.query(
+                `SELECT id, owner_id, deleted_at
+                FROM files
+                WHERE id = $1`,
+                [fileId]
+            );
+
+            const file = result.rows[0];
+
+            if (!file) {
+                return res.status(404).json({
+                    message: "Khong tim thay file"
+                });
+            }
+            if (file.owner_id !== userID) {
+                return res.status(403).json({
+                    message: "Khong co quyen xoa file"
+                });
+            }
+
+            if (!file.deleted_at) {
+                return res.status(400).json({
+                    message: "File van con ma!"
+                });
+            }
+
+            await pool.query(
+                `UPDATE files
+                SET deleted_at = NULL
+                WHERE id = $1`,
+                [fileId]
+            );
+
+            return res.status(200).json({
+                success: true,
+                fileId: fileId,
+                message: "Da khoi phuc file"
+            });
+
+
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({
+                message: "Bad Server"
+            });
+        }
+    },
     deleteFile: async (req, res) => {
 
         const fileId = req.params.id;

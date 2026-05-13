@@ -32,7 +32,7 @@ export const fetchWithAuth = async (url, options = {}) => {
             if (!refreshResponse.ok) {
                 console.log("Refresh token expired!");
                 localStorage.removeItem("accessToken");
-                window.location.href = "/auth/login";
+                window.location.href = "/login";
                 return;
             }
 

@@ -59,21 +59,23 @@
 
 .expand-wrapper {
     display: grid;
-    grid-template-rows: 1fr; /* 1fr: mở hết cỡ theo nội dung */
+    grid-template-rows: 1fr;
+    /* 1fr: mở hết cỡ theo nội dung */
     transition: grid-template-rows 0.5s ease-in-out;
 }
 
-.collapsed{
+.collapsed {
     gap: 0;
     padding-bottom: 0;
-    padding-top: 12px; 
+    padding-top: 12px;
 
-} 
+}
+
 .expand-wrapper {
     display: grid;
     grid-template-rows: 1fr;
     transition: grid-template-rows 0.5s ease-in-out;
-    overflow: hidden; 
+    overflow: hidden;
 }
 
 .collapsed .expand-wrapper {
@@ -134,7 +136,7 @@
 }
 
 .collapsed .outer-border {
-    border-width: 0; 
+    border-width: 0;
     padding-top: 0;
     padding-bottom: 0;
     opacity: 0;
@@ -215,7 +217,6 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    display: none;
     box-shadow: 2px 2px 0px var(--retro-shadow-color);
     transition: all 0.1s;
 }
@@ -237,7 +238,7 @@
     z-index: 10;
 }
 
-.uploadContainer .cancel-btn{
+.uploadContainer .cancel-btn {
     border: none;
 }
 
@@ -260,3 +261,13 @@
     font-size: 14px;
 }
 
+/* Ẩn circle khi hover để nút hiện lên rõ ràng */
+.FileManager:hover .circle-progress-bar {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Nút pause overlay lên circle */
+.progress-container {
+    position: relative;
+}

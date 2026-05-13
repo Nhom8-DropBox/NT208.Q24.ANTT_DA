@@ -1,4 +1,4 @@
-function VersionHolder({ VerNo, VerCreate }) {
+function VersionHolder({ VerNo, VerCreate, onDownload, onRestore }) {
     return (
         <div className="timeline-item">
             <div className="timeline-dot" style={{ background: "var(--bg-surface)" }}></div>
@@ -7,13 +7,12 @@ function VersionHolder({ VerNo, VerCreate }) {
                 <div className="version-date">{VerCreate}</div>
             </div>
             <div className="version-actions">
-                <button className="btn">
+                <button className="btn" onClick={onDownload}>
                     <span className="material-symbols-rounded" style={{ fontSize: "18px" }}>download</span> Tải về
                 </button>
-                <button 
-                    className="btn btn-restore" 
-                    onClick={() => window.confirm(`Bạn có chắc muốn lấy bản ${VerNo} đè lên bản hiện tại không?`)}
-                >
+                <button
+                    className="btn btn-restore"
+                    onClick={onRestore}>
                     <span className="material-symbols-rounded" style={{ fontSize: '18px', color: 'red' }}>history</span> Khôi phục
                 </button>
             </div>
