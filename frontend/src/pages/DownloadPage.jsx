@@ -1,20 +1,30 @@
 import "../styles/DownloadPage.css"
-function DownloadPage({fileData}){
-	return(
-		<div className="DownloadContainer">
-			 <div class="logo-container">
+import { useSearchParams } from "react-router-dom"
+import { useDownloadFile } from "../hooks/useDownloadFile";
 
-				<img src="assets/nova_logo.png" class="brand-logo"/>
-				<div class="brand-text">Sakura Cloud</div>
+export default function DownloadPage() {
+	const [searchParams] = useSearchParams();
+
+	const fileId = searchParams.get('fileId');
+	const fileName = searchParams.get('fileName');
+	const { handlePresignedDownloadUrl } = useDownloadFile();
+	return (
+		<div className="DownloadContainer">
+			<div className="logo-container">
+
+				<img src="assets/nova_logo.png" className="brand-logo" />
+				<div className="brand-text">Sakura Cloud</div>
 			</div>
 
-			<div class="share-card">
-				<span class="material-symbols-rounded file-icon">description</span>
-				<div class="file-name">{fileData.name}</div>
-				<div class="file-size">{fileData.size}</div>
+			<div className="share-card">
+				<span className="material-symbols-rounded file-icon">description</span>
+				<div className="file-name">{fileName || 'Unknown File'}</div>
+				<div className="file-size">ID: {fileId}</div>
 
-				<button class="btn-download-big">
-					<span class="material-symbols-rounded">download</span> Download
+				<button className="btn-download-big" onClick={() => {
+					handlePresignedDownloadUrl(fileId, fileName);
+				}}>
+					<span className="material-symbols-rounded">download</span> Download
 				</button>
 			</div>
 		</div>

@@ -11,10 +11,10 @@
     --transition-fast: 0.1s;
 }
 
-body {
+.DownloadContainer {
     font-family: 'Quicksand', sans-serif;
     background-color: var(--bg-primary);
-    background-image: url(./assets/image.png), url(./assets/bg.jpg);
+    background-image: url(../assets/image.png), url(../assets/bg.jpg);
     background-size: cover;
     background-position: center;
 
@@ -23,7 +23,8 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
+    width: 100%;
 }
 
 .DownloadContainer .logo-container {
