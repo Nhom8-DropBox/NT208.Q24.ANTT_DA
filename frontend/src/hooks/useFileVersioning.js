@@ -1,13 +1,12 @@
-export const useFileVersoning = () => {
-	const handleVersoning = (fileId, fileName, fileSize, fileVer, fileDate) => {
+export const useFileVersioning = () => {
+	const handleVersioning = (fileId, fileName) => {
 		const safeName = encodeURIComponent(fileName);
 
-		const url = `/verson?fileId=${fileId}&${safeName}&${fileSize}&${fileVer}&${fileDate}`;
+		const url = `/versions?fileID=${fileId}&fileName=${safeName}`;
 
-		window.on(url, '_blank', 'noopener, noreferrer');
+		window.open(url, '_blank', 'noopener, noreferrer');
 	}
-
 	return {
-		handleVersoning
+		handleVersioning
 	};
 }

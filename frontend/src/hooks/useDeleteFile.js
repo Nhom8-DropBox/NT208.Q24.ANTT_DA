@@ -9,7 +9,7 @@ export const useDeleteFile = (setData) => {
         if (!window.confirm("Bạn có chắc muốn đưa file này vào thùng rác không?")) return;
 
         try {
-            const response = await fetchWithAuth(`/api/files/${fileId}/trash`, {
+            const response = await fetchWithAuth(`/files/${fileId}`, {
                 method: 'PUT' 
             });
 

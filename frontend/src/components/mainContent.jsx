@@ -9,7 +9,7 @@ import LinksBoard from "./linksBoard.jsx";
 // import { use, useState } from "react";
 
 
-function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onDownload, onShare, onVersoning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose }) {
+function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onDownload, onShare, onVersioning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose }) {
     const { isOpen: isLinksOpen, open: openLinks, close: closeLinks } = useToggle();
     const { isOpen: isProfileOpen, open: openProfile, close: closeProfile } = useToggle();
     return (
@@ -42,20 +42,20 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                 {/* Lấy files từ database */}
                 <section className="section">
                     <div className="file-list">
-                        <Files key='1' Name='TopSecret.txt' Owner='me' Date='30-4-2026' Size='14 MB' Icon='description' onDelete={onDelete} onDownload={onDownload} onShare={onShare} />
+                        <Files ID={1} Name='TopSecret.txt' Owner='me' Date='30-4-2026' Size='14 MB' Icon='description' onDelete={onDelete} onDownload={onDownload} onShare={onShare} onVersioning={onVersioning} />
                         {data?.files?.map((file) => (
                             <Files
-                                key={file.id}
+                                fileId={file.id}
                                 ID={file.id}
                                 Name={file.name}
-                                Owner='me'
+                                Owner='me' // 
                                 Date={new Date(file.created_at).toLocaleDateString()}
                                 Size={file.size_bytes ? (file.size_bytes / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB'}
                                 Icon={'description'}
                                 onDelete={onDelete}
                                 onDownload={onDownload}
                                 onShare={onShare}
-                                onVersoning={onVersoning}
+                                onVersioning={onVersioning}
                             />
                         ))}
                     </div>

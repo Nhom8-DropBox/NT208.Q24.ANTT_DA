@@ -48,16 +48,29 @@ export const useFileUpload = (onUploadSuccess) => {
 
         try {
             // Khởi tạo session hoặc Resume bằng fetchWithAuth
+            // gửi dữ liệu lên server trước tiên để xác định versioning hay tạo mới
+            const RespondFileID = await fetchWithAuth("/files/resolve", {
+                method: "POST",
+                body: JSON.stringify({
+                    filename: file.name,
+                    mimeType: file.type,
+                })
+            });
+
+            const { fileId, name, mimeType = [] } = await RespondFileID.json();
+
+            //
             const Respond = await fetchWithAuth("/files/upload/init", {
                 method: "POST",
                 body: JSON.stringify({
                     filename: file.name,
                     mimeType: file.type,
                     sizeBytes: file.size,
-                    fileId: fileId
+                    fileId: fileId // nếu server trả về null ->? file tạo mới, nếu trả về số -> version
                 })
             });
             const { sessionId, chunkSize, totalParts, uploadedParts = [] } = await Respond.json();
+            //
 
             // Tính toán progress ban đầu dựa vào những phần đã upload (nếu có resume)
             let completedPartsCount = uploadedParts.length;
