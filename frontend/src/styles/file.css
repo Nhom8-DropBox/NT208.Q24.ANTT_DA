@@ -36,15 +36,22 @@
     flex: 2;
     display: flex;
     align-items: center;
+    min-width: 0;
     gap: 12px;
+
+}
+
+.file-name {
+    color: var(--text-primary);
+    white-space: nowrap;
     overflow: hidden;
+    max-width: 400px;
+    text-overflow: ellipsis;
 }
 
 .col-owner {
     flex: 1;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .col-date {
@@ -72,12 +79,22 @@
     transition: var(--transition-fast);
     font-size: 16px;
     font-weight: 600;
+
+    position: relative;
+}
+
+.list-item.active-menu {
+    z-index: 1001;
+    background-color: var(--accent-light);
+    transform: translateY(-2px) translateX(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 .list-item:hover {
     background-color: var(--accent-light);
     transform: translateY(-2px) translateX(-2px);
     box-shadow: var(--shadow-sm);
+    z-index: 10;
 }
 
 .list-item .col-owner,
@@ -117,11 +134,11 @@
     color: #42294A;
     box-shadow: 2px 2px 4px var(--text-primary);
 
-    position:absolute;
+    position: absolute;
     min-width: 100px;
     right: 35px;
     top: 35px;
-
+    z-index: 1000;
     animation: popupFadein ease-out forwards;
 }
 
@@ -142,7 +159,7 @@
     }
 }
 
-.menu-item{
+.menu-item {
     background-color: var(--bg-surface);
     font-weight: 800px;
     font-size: 14px;
@@ -152,7 +169,7 @@
     align-items: center;
 }
 
-.menu-item:hover{
+.menu-item:hover {
     background-color: var(--bg-hover);
     color: var(--bg-primary);
     transform: scale(1.02);
@@ -160,10 +177,10 @@
 
 
 @media (max-width: 768px) {
+
     .col-owner,
     .col-date,
     .col-size {
         display: none;
     }
 }
-

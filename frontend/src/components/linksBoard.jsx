@@ -1,7 +1,7 @@
 import '../styles/linkBoard.css'
 import LinksItem from './linksItem'
 
-export default function LinksBoard({ onClose }) {
+export default function LinksBoard({ onClose, links }) {
     return (
         <div className="linkWrapper">
             <div className="linkPopupContainer">
@@ -18,8 +18,19 @@ export default function LinksBoard({ onClose }) {
                 </div>
 
                 <div className="outer-border">
-                    <LinksItem linkName="Top Secret.txt" url="https://sakura.cloud/share/abc123xyz" />
-
+                    {links && links.length > 0 ? (
+                        links.map((link) => (
+                            <LinksItem
+                                key={link.id}
+                                linkName={link.file_name}
+                                url={`http://localhost:5173/download?token=${link.token_uuid}`}
+                            />
+                        ))
+                    ) : (
+                        <div style={{ textAlign: "center", padding: "20px", color: "var(--text-color)" }}>
+                            Chưa có link nào được tạo.
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

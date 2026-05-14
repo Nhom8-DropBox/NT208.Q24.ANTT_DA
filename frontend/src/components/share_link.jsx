@@ -6,10 +6,10 @@ import { useShareFile } from "../hooks/useShareFile";
 
 export default function ShareBoard() {
 	const [searchParams] = useSearchParams();
-
+	const [refreshTrigger, setRefreshTrigger] = useState();
 	const fileId = searchParams.get('fileId');
 	const fileName = searchParams.get('fileName');
-	const { role, setRole, expiry, setExpiry, resultUrl, setResultUrl, isLoading, setIsLoading, handleCopy, handleCreateShareLink } = useShareFile();
+	const { role, setRole, expiry, setExpiry, resultUrl, setResultUrl, isLoading, setIsLoading, handleCopy, handleCreateShareLink, handleGetShareLinks } = useShareFile();
 
 	// const [role, setRole] = useState("view");
 	// const [expiry, setExpiry] = useState("1h");
@@ -52,14 +52,14 @@ export default function ShareBoard() {
 
 					<button className="btn-create" onClick={() => handleCreateShareLink(fileId)} disabled={isLoading}>
 						<span className="material-symbols-rounded">link</span>
-						{isLoading ? "Đang tạo..." : `Tạo Link Chia Sẻ cho ${fileName || 'file'}`}
+						<span className="link-name">{isLoading ? "Đang tạo..." : `Tạo Link Chia Sẻ cho ${fileName || 'file'}`} </span>
 					</button>
 
 					<div className="result-area">
 						<input
 							type="text"
 							className="link-input"
-							value={resultUrl || `http://localhost:3000/share/${fileId || 'example'}`} // Cần link download từ minIO 
+							value={resultUrl || 'Your Link Here...!'} // Cần link download từ minIO
 							readOnly
 						/>
 						<button className="btn-copy" onClick={handleCopy} disabled={!resultUrl}>

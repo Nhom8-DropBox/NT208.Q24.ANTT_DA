@@ -37,6 +37,8 @@ function Dashboard() {
                 }
                 const filesResponse = await fetchWithAuth(fetchUrl);
                 const filesData = await filesResponse.json();
+                const fileList = filesData.files || [];
+                const fileCount = fileList.length;
 
                 if (!filesResponse.ok) {
                     throw new Error(filesData.message || "Lỗi lấy danh sách file");
@@ -46,7 +48,8 @@ function Dashboard() {
                 const profileResult = await profileResponse.json();
 
                 setData({
-                    files: filesData.files || [],
+                    files: fileList,
+                    length: fileCount,
                     user: profileResult.user,
                     progress: profileResult.total_storage ?
                         `${((profileResult.total_storage / (15 * 1024 * 1024 * 1024)) * 100).toFixed(1)}%` : '0%'

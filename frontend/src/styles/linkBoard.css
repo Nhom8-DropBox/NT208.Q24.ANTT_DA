@@ -91,6 +91,9 @@
     padding: 10px 14px;
     box-shadow: 4px 4px 0px var(--retro-shadow-color, #42294A);
     transition: transform 0.1s;
+
+    position: relative;
+    z-index: 1111;
 }
 
 .LinkManager:hover {
@@ -171,6 +174,8 @@
     cursor: pointer;
     box-shadow: 2px 2px 0px var(--retro-shadow-color, #42294A);
     transition: all 0.1s;
+    padding: 0;
+
 }
 
 .linkPopupContainer .Operation-btn:active {

@@ -10,10 +10,12 @@ export default function LinksItem({ linkName, url }) {
                 </div>
             </div>
             <div className="link-control">
-                <button className="Operation-btn copy-btn" title="Copy Link">
+                <button className="Operation-btn" title="Copy Link" onClick={() => {
+                    navigator.clipboard.writeText(url).then(() => alert("Đã copy link!"));
+                }}>
                     <span className="material-symbols-rounded">content_copy</span>
                 </button>
-                <button className="Operation-btn go-btn" title="Open Link">
+                <button className="Operation-btn" title="Open Link" onClick={() => window.open(url, "_blank")}>
                     <span className="material-symbols-rounded">open_in_new</span>
                 </button>
             </div>

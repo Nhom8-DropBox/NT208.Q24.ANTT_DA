@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 
 function UploadFiles({ fileName, progress, status, onPause, onResume, onCancel }) {
 

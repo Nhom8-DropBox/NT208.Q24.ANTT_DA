@@ -164,7 +164,7 @@
     color: var(--retro-stroke);
 }
 
-.file-name {
+.uploadContainer .file-name {
     color: var(--retro-stroke);
     overflow: hidden;
     font-size: 16px;

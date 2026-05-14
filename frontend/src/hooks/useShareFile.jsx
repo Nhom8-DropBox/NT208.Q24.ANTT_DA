@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { fetchWithAuth } from "../utils/api";
 
 export const useShareFile = () => {
@@ -6,6 +6,31 @@ export const useShareFile = () => {
 	const [expiry, setExpiry] = useState("1h");
 	const [resultUrl, setResultUrl] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const [links, setLinks] = useState([]);
+
+	const loadLinks = useCallback(async () => {
+		try {
+			const response = await fetchWithAuth("/share-links/links");
+			if (response.ok) {
+				const data = await response.json();
+				setLinks(data.links || data);
+			}
+		} catch (err) {
+			console.error("Lỗi fetch links:", err);
+		}
+	}, []);
+
+	useEffect(() => {
+		const handleStoragechange = (e) => {
+			if (e.key === 'share-link-created') {
+				loadLinks();
+			}
+		}
+		window.addEventListener('storage', handleStoragechange);
+		loadLinks();
+
+		return () => window.removeEventListener('storage', handleStoragechange);
+	}, [loadLinks])
 
 	const handleShare = (fileId, fileName) => {
 
@@ -45,6 +70,7 @@ export const useShareFile = () => {
 			const data = await response.json();
 			if (data && data.url) {
 				setResultUrl(data.url);
+				localStorage.setItem('share-link-created', Date.now().toString());
 			} else {
 				alert("Không thể tạo link chia sẻ: " + (data.message || "Lỗi không xác định"));
 			}
@@ -64,9 +90,11 @@ export const useShareFile = () => {
 		}
 	}
 
+
 	return {
 		handleShare,
 		handleCreateShareLink,
+		links,
 		handleCopy,
 		role,
 		setRole,

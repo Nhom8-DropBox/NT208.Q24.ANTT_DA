@@ -17,10 +17,10 @@ function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, activeTab, onRes
     };
 
     return (
-        <div className="list-item">
+        <div className={`list-item ${isOpen ? 'active-menu' : ''}`}>
             <div className="col-name">
                 <span className={`material-symbols-rounded icon-doc`}>{Icon}</span>
-                <span>{Name}</span>
+                <span className='file-name'>{Name}</span>
             </div>
             <span className="col-owner">{Owner}</span>
             <span className="col-date">{Date}</span>
