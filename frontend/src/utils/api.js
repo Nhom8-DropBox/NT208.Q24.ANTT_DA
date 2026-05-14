@@ -17,7 +17,7 @@ export const fetchWithAuth = async (url, options = {}) => {
         // Nếu 401 → token hết hạn, redirect login
         if (response.status === 401) {
             localStorage.removeItem("accessToken");
-            window.location.href = "/auth/login";
+            window.location.href = "/login";
             return;
         }
 

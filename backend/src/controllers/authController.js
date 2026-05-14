@@ -68,7 +68,7 @@ const authController = {
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true, // k cho phép js đọc
                 secure: true, // chỉ truyền qua https
-                sameSite: "Strict" // k cho phép các trang web khác gửi cookie
+                sameSite: "None" // cross-site cookie cho phép FE và BE khác domain
             });
 
             return res.json({accessToken});
