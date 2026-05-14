@@ -7,7 +7,6 @@ import '../styles/mainContent.css';
 import LinksBoard from "./linksBoard.jsx";
 import { useProfile } from "../hooks/useProfile.js";
 import { getInitials } from "../utils/getInitial.js";
-import { useShareFile } from "../hooks/useShareFile.jsx";
 import { useState } from "react";
 
 
@@ -17,8 +16,6 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
     const { name, email } = useProfile();
     let profileName = getInitials(name);
     const [keyword, setKeyword] = useState("");
-
-    const { links } = useShareFile();
 
     return (
         <main className="main-content">
@@ -41,7 +38,7 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                 <div className="header-actions">
                     <div style={{ position: 'relative' }}>
                         <IconBtn icon="offline_pin" title="Offline preview" onClick={openLinks} />
-                        {isLinksOpen && <LinksBoard onClose={closeLinks} links={links} />}
+                        {isLinksOpen && <LinksBoard onClose={closeLinks} />}
                     </div>
                     {/* <IconBtn icon="help" title="Help" />
                     {IconBtn({ icon: 'settings', title: 'Settings', onClick: () => { } })} */}
