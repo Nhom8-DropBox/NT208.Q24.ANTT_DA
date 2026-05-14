@@ -28,7 +28,7 @@ router.get("/:id/versions/:versionNo/download-url", listController.getVersionDow
 router.post("/:id/versions/:versionNo/restore", listController.restoreVersion);
 
 //trashbin
-router.post("/:id/restore" , recycleController.restore );
+router.post("/:id/restore", recycleController.restore);
 router.delete("/:id/permanent", recycleController.deleteForever);
 
 //delete version

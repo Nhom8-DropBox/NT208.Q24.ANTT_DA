@@ -55,6 +55,29 @@ export const useDeleteFile = (setData) => {
         }
     };
 
-    // Trả về cả 2 hàm để Component có thể dùng
-    return { handleDelete, handleDeletePermanently };
+    // xóa version
+    const handleDeleteVersion = async (fileId, versionNo, setVersions) => {
+        if (!window.confirm(`Bạn có chắc muốn xóa version V${versionNo}?`)) return;
+
+        try {
+            const response = await fetchWithAuth(`/files/${fileId}/versions/${versionNo}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || 'Lỗi khi xóa version');
+            }
+
+            alert('Đã xóa version thành công!');
+            if (setVersions) {
+                setVersions(prev => prev.filter(v => v.versionNo !== versionNo));
+            }
+
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+    return { handleDelete, handleDeletePermanently, handleDeleteVersion };
 };
