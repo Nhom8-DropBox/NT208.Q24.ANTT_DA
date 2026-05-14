@@ -8,13 +8,15 @@ import LinksBoard from "./linksBoard.jsx";
 import { useProfile } from "../hooks/useProfile.js";
 import { getInitials } from "../utils/getInitial.js";
 import { useShareFile } from "../hooks/useShareFile.jsx";
+import { useState } from "react";
 
 
-function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onRestore, onDownload, onShare, onVersioning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose }) {
+function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onRestore, onDownload, onShare, onVersioning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose, onSearch }) {
     const { isOpen: isLinksOpen, open: openLinks, close: closeLinks } = useToggle();
     const { isOpen: isProfileOpen, open: openProfile, close: closeProfile } = useToggle();
     const { name, email } = useProfile();
     let profileName = getInitials(name);
+    const [keyword, setKeyword] = useState("");
 
     const { links } = useShareFile();
 
@@ -24,7 +26,15 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
             <header className="top-header">
                 <div className="search-bar">
                     <span className="material-symbols-rounded search-icon">search</span>
-                    <input type="text" placeholder="Search in Drive..." />
+                    <input
+                        type="text"
+                        placeholder="Search in Drive..."
+                        value={keyword}
+                        onChange={(e) => {
+                            setKeyword(e.target.value);
+                            onSearch?.(e.target.value);
+                        }}
+                    />
                     <span className="material-symbols-rounded filter-icon">tune</span>
                 </div>
 
