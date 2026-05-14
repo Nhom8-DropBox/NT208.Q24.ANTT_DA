@@ -33,7 +33,7 @@ function UploadBoard({ files = [], onPause, onResume, onCancel, onClose }) {
             <div className="sparkle s2">✦</div>
             <div className="sparkle s3">✦</div>
             <div className="upload-header">
-                <span>Uploading {files.length || 1} item...</span>
+                <span>Uploading {files.length || 0} item...</span>
                 <div className="header-actions">
                     {/* Thêm sự kiện onClick để đảo ngược trạng thái */}
                     <span className="material-symbols-rounded"
@@ -51,15 +51,6 @@ function UploadBoard({ files = [], onPause, onResume, onCancel, onClose }) {
 
             <div className="expand-wrapper">
                 <div className="outer-border">
-                    <UploadFiles
-                        key={2}
-                        fileName={"Secret.txt"}
-                        progress={20}
-                        status={"uploading"}
-                        onPause={() => onPause(2)}
-                        onResume={() => onResume(2)}
-                        onCancel={() => onCancel(2)}
-                    />
                     {files.map((file) => (
                         <UploadFiles
                             key={file.id}

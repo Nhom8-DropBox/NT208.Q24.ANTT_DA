@@ -260,40 +260,22 @@ const listController = {
         const userID = req.user.userID;
 
         try {
-            const trashResult = await pool.query(
-                `SELECT f.id, f.name, f.mime_type, f.deleted_at, f.created_at, f.updated_at, f.deleted_at
-                FROM files f
-                JOIN file_versions fv ON fv.file_id = f.id
+            const result = await pool.query(
+                `SELECT f.id, f.name, f.mime_type, f.deleted_at, fv.version_no, fv.size_bytes
+                FROM files AS f
+                JOIN file_versions fv ON f.id = fv.file_id
                 WHERE f.owner_id = $1 AND f.deleted_at IS NOT NULL
                 AND fv.version_no = (
                     SELECT MAX(fv2.version_no)
                     FROM file_versions fv2
                     WHERE fv2.file_id = f.id
                 )
-                ORDER BY f.deleted_at DESC`, // Sắp xếp file mới xóa lên đầu
+                ORDER BY f.deleted_at DESC`,
                 [userID]
             );
 
-            const trashFiles = trashResult.rows;
-
-            if (trashFiles?.length === 0) {
-                return res.status(200).json({
-                    message: "Thùng rác trống",
-                    files: []
-                });
-            }
-
-            const formattedTrashFiles = trashFiles?.map((file) => ({
-                id: file.id,
-                name: file.name,
-                mimeType: file.mime_type,
-                deletedAt: file.deleted_at,
-                sizeBytes: file.size_bytes
-            }));
-
             return res.status(200).json({
-                totalItems: formattedTrashFiles.length,
-                files: formattedTrashFiles
+                files: result.rows
             });
         }
         catch (err) {
@@ -621,77 +603,77 @@ const listController = {
         const userId = req.user.userID;
 
         try {
-        const fileResult = await pool.query(
-            `SELECT id, owner_id, deleted_at
+            const fileResult = await pool.query(
+                `SELECT id, owner_id, deleted_at
             FROM files
             WHERE id = $1`,
-            [fileId]
-        );
-        const file = fileResult.rows[0];
+                [fileId]
+            );
+            const file = fileResult.rows[0];
 
-        if (!file) 
-            return res.status(404).json({ message: "Khong tim thay file" });
-        if (file.owner_id !== userId) 
-            return res.status(403).json({ message: "Khong co quyen xoa version" });
-        if (file.deleted_at) 
-            return res.status(400).json({ message: "File da bi xoa" });
+            if (!file)
+                return res.status(404).json({ message: "Khong tim thay file" });
+            if (file.owner_id !== userId)
+                return res.status(403).json({ message: "Khong co quyen xoa version" });
+            if (file.deleted_at)
+                return res.status(400).json({ message: "File da bi xoa" });
 
 
-        const versionResult = await pool.query(
-            `SELECT id, file_id, version_no, s3_key
+            const versionResult = await pool.query(
+                `SELECT id, file_id, version_no, s3_key
             FROM file_versions
             WHERE file_id = $1 AND version_no = $2`,
-            [fileId, versionNo]
-        );
+                [fileId, versionNo]
+            );
 
-        const version = versionResult.rows[0]
+            const version = versionResult.rows[0]
 
-        const maxResult = await pool.query(
-            `SELECT MAX(version_no) AS max_version
+            const maxResult = await pool.query(
+                `SELECT MAX(version_no) AS max_version
             FROM file_versions
             WHERE file_id = $1`,
-            [fileId]
-        );
+                [fileId]
+            );
 
-        if (!version) return res.status(404).json({message: "Khong tim thay version" });
-        
-        if (version.version_no == maxResult.rows[0].max_version ) return res.status(400).json({message: "Khong duoc xoa version latest" });
+            if (!version) return res.status(404).json({ message: "Khong tim thay version" });
+
+            if (version.version_no == maxResult.rows[0].max_version) return res.status(400).json({ message: "Khong duoc xoa version latest" });
 
 
-        //check xem ai dùng chung s3_key không
-        const sameKeyResult = await pool.query(
-            `SELECT COUNT(*) AS total
+            //check xem ai dùng chung s3_key không
+            const sameKeyResult = await pool.query(
+                `SELECT COUNT(*) AS total
             FROM file_versions
             WHERE s3_key = $1 AND id <> $2`,
-            [version.s3_key, version.id]
-        );
+                [version.s3_key, version.id]
+            );
 
-        //XÓa rows version
-        await pool.query(
-            `DELETE FROM file_versions
+            //XÓa rows version
+            await pool.query(
+                `DELETE FROM file_versions
             WHERE id = $1`,
-            [version.id]
-        );
-        
+                [version.id]
+            );
 
-        const sameKeyCount = Number(sameKeyResult.rows[0].total);
+
+            const sameKeyCount = Number(sameKeyResult.rows[0].total);
             if (sameKeyCount === 0) {
-            await deleteObject(version.s3_key);
-        }
+                await deleteObject(version.s3_key);
+            }
 
 
 
 
 
-        return res.status(200).json({
-            fileID: fileId,
-            message: "Da xoa version da chon cua file ",
-        });
+            return res.status(200).json({
+                fileID: fileId,
+                message: "Da xoa version da chon cua file ",
+            });
 
         } catch (err) {
             console.log(err);
             return res.status(500).json({
-            message: "Bad Server"
+                message: "Bad Server"
             });
         }
     }
