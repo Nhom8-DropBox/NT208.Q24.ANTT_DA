@@ -48,13 +48,14 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                 {/* Lấy files từ database */}
                 <section className="section">
                     <div className="file-list">
+
                         {data?.files?.map((file) => (
                             <Files
                                 fileId={file.id}
                                 ID={file.id}
                                 Name={file.name}
                                 Owner='me' // 
-                                Date={new Date(file.created_at).toLocaleDateString()}
+                                Date={new Date(file.created_at).toLocaleDateString() || new Date(file.deleted_at).toLocaleDateString()}
                                 Size={file.size_bytes ? (file.size_bytes / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB'}
                                 Icon={'description'}
                                 activeTab={activeTab}

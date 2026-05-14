@@ -4,18 +4,26 @@ import { useState } from 'react';
 function UploadBoard({ files = [], onPause, onResume, onCancel, onClose}) {
     const [isExpanded, setIsExpanded] = useState(true); // tạo state để quản lý đóng mở
 
-    const handleCloseAll = () =>
-    {
-        const confirmClose = window.confirm("Bạn có muốn hủy tất cả các tệp đang tải lên không?");
-        
-        if (confirmClose) {
+    const handleCloseAll = () => {
+
+        const hasUploadingFile = files.some(
+            file => file.status === 'uploading' || file.status === 'stopped'
+        );
+
+        if (hasUploadingFile) {
+            const confirmClose = window.confirm(
+                "Bạn có muốn hủy tất cả các tệp đang tải lên không?"
+            );
+
+            if (!confirmClose) return;
+
             files.forEach(file => {
                 onCancel(file.id);
             });
+        }
 
-            if (onClose) {
-                onClose();
-            }
+        if (onClose) {
+            onClose();
         }
     };
     
