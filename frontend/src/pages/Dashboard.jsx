@@ -52,12 +52,14 @@ function Dashboard() {
                 const profileResponse = await fetchWithAuth(`/dashboard/profile`);
                 const profileResult = await profileResponse.json();
 
+                const storageLimit = profileResult.storage_limit || 16106127360;
                 setData({
                     files: fileList,
                     length: fileCount,
                     user: profileResult.user,
+                    storageLimit,
                     progress: profileResult.total_storage ?
-                        `${((profileResult.total_storage / (15 * 1024 * 1024 * 1024)) * 100).toFixed(1)}%` : '0%'
+                        `${((profileResult.total_storage / storageLimit) * 100).toFixed(1)}%` : '0%'
                 });
             }
             catch (err) {
@@ -105,6 +107,7 @@ function Dashboard() {
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
                     onDelete={handleDelete}
+                    onUpgradeSuccess={handleUploadSuccess}
                 />
 
                 <MainContent

@@ -3,8 +3,22 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    refresh_token VARCHAR(255)
+    refresh_token VARCHAR(255),
+    storage_limit BIGINT DEFAULT 16106127360
 );
+
+CREATE TABLE promo_codes (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    storage_bytes BIGINT NOT NULL,
+    used_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+INSERT INTO promo_codes (code, storage_bytes) VALUES
+    ('SAKURA30', 32212254720),
+    ('NHOM8VIP', 32212254720),
+    ('UPGRADE2025', 32212254720);
 
 CREATE TABLE files (
     id SERIAL PRIMARY KEY,
