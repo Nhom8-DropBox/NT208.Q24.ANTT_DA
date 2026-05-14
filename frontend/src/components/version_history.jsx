@@ -3,6 +3,7 @@ import "../styles/VersionBoard.css"
 import { useSearchParams } from "react-router-dom" // hook lấy thành phần trên url
 import { useDownloadFile } from "../hooks/useDownloadFile";
 import { useRestoreFile } from "../hooks/useRestoreFile";
+import { useDeleteFile } from "../hooks/useDeleteFile";
 import { fetchWithAuth } from "../utils/api";
 import { useState, useEffect } from "react";
 
@@ -18,6 +19,7 @@ export default function VersionHistory() {
 
 	const { handleVersionDownloadUrl } = useDownloadFile();
 	const { handleRestore } = useRestoreFile();
+	const { handleDeleteVersion } = useDeleteFile();
 
 	useEffect(() => {
 		if (!fileID)
@@ -50,6 +52,14 @@ export default function VersionHistory() {
 		return d.toLocaleDateString('vi-VN') + ' - ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 	};
 
+	const formatSize = (bytes) => {
+		if (!bytes || bytes === 0) return '0 B';
+		if (bytes < 1024) return bytes + ' B';
+		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+		return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+	};
+
+
 	return (
 		<div className="VersionContainer">
 			<div className="modal-back">
@@ -76,9 +86,11 @@ export default function VersionHistory() {
 										// Nếu là isCurrent -> (Current), ngược lại nếu là isOriginal -> (Origin), còn lại -> Rỗng
 										VerNo={`V${ver.versionNo} ${ver.isCurrent ? '(Current)' : (ver.isOriginal ? '(Origin)' : '')}`}
 										VerCreate={formatDate(ver.createdAt)}
+										VerSize={formatSize(ver.sizeBytes)}
 										isCurrent={ver.isCurrent}
 										onDownload={() => handleVersionDownloadUrl(fileID, ver.versionNo, fileName)}
 										onRestore={() => handleRestore(fileID, ver.versionNo)}
+										onDelete={() => handleDeleteVersion(fileID, ver.versionNo, setVersions)}
 									/>
 								))
 							)}
