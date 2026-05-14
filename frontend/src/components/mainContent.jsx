@@ -42,14 +42,14 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                 {/* Lấy files từ database */}
                 <section className="section">
                     <div className="file-list">
-                        <Files ID={1} Name='TopSecret.txt' Owner='me' Date='30-4-2026' Size='14 MB' Icon='description' onDelete={onDelete} onDownload={onDownload} onShare={onShare} onVersioning={onVersioning} />
+                        
                         {data?.files?.map((file) => (
                             <Files
                                 fileId={file.id}
                                 ID={file.id}
                                 Name={file.name}
                                 Owner='me' // 
-                                Date={new Date(file.created_at).toLocaleDateString()}
+                                Date={new Date(file.created_at).toLocaleDateString() || new Date(file.deleted_at).toLocaleDateString()}
                                 Size={file.size_bytes ? (file.size_bytes / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB'}
                                 Icon={'description'}
                                 activeTab={activeTab}

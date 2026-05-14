@@ -21,7 +21,7 @@ router.get("/trash", listController.getTrash);
 router.post("/resolve", listController.resolveFile);
 
 // Dynamic routes
-router.get("/:id", listController.getFileById);
+router.get("/:id", listController.getFileById); // preview, ch có fe
 router.delete("/:id", listController.deleteFile);
 router.get("/:id/download-url", fileController.GetPresignedDownloadURL);
 router.get("/:id/versions", listController.getFileVersions);
