@@ -627,6 +627,15 @@ const listController = {
             WHERE id = $1`,
             [fileId]
         );
+        const file = fileResult.rows[0];
+
+        if (!file) 
+            return res.status(404).json({ message: "Khong tim thay file" });
+        if (file.owner_id !== userId) 
+            return res.status(403).json({ message: "Khong co quyen xoa version" });
+        if (file.deleted_at) 
+            return res.status(400).json({ message: "File da bi xoa" });
+
 
         const versionResult = await pool.query(
             `SELECT id, file_id, version_no, s3_key
@@ -634,16 +643,50 @@ const listController = {
             WHERE file_id = $1 AND version_no = $2`,
             [fileId, versionNo]
         );
-        // Đếm tổng số version
 
-        const countResult = await pool.query(
-            `SELECT COUNT(*) AS total
+        const version = versionResult.rows[0]
+
+        const maxResult = await pool.query(
+            `SELECT MAX(version_no)
             FROM file_versions
             WHERE file_id = $1`,
             [fileId]
         );
 
+        if (!version) return res.status(404).json({message: "Khong tim thay version" });
         
+        if (version == maxResult.rows[0].MAX ) return res.status(400).json({message: "Khong duoc xoa version latest" });
+
+
+        //check xem ai dùng chung s3_key không
+        const sameKeyResult = await pool.query(
+            `SELECT COUNT(*) AS total
+            FROM file_versions
+            WHERE s3_key = $1 AND id <> $2`,
+            [version.s3_key, version.id]
+        );
+
+        //XÓa rows version
+        await pool.query(
+            `DELETE FROM file_versions
+            WHERE id = $1`,
+            [version.id]
+        );
+        
+
+        const sameKeyCount = Number(sameKeyResult.rows[0].total);
+            if (sameKeyCount === 0) {
+            await deleteObject(version.s3_key);
+        }
+
+
+
+
+
+        return res.status(200).json({
+            fileID: fileId,
+            message: "Da xoa version da chon cua file ",
+        });
 
         } catch (err) {
             console.log(err);
