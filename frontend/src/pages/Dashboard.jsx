@@ -18,7 +18,12 @@ function Dashboard() {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const { handleDelete, handleDeletePermanently } = useDeleteFile(setData);
-    const { handleRestore } = useRestoreFile(setData);
+
+    const handleRestoreSuccess = () => {
+        setRefreshTrigger(prev => prev + 1);
+    };
+    const { handleRestoreFile } = useRestoreFile(handleRestoreSuccess);
+
     const { handleDownload } = useDownloadFile();
     const { handleShare } = useShareFile();
     const { handleVersioning } = useFileVersioning(); // 
@@ -33,7 +38,7 @@ function Dashboard() {
                 if (activeTab === 'trash') {
                     fetchUrl = '/files/trash';
                 } else if (activeTab === 'home' || activeTab === 'myfiles') {
-                    fetchUrl = '/files'; // Cập nhật lại endpoint này tùy theo logic backend của bạn
+                    fetchUrl = '/files';
                 }
                 const filesResponse = await fetchWithAuth(fetchUrl);
                 const filesData = await filesResponse.json();
@@ -97,7 +102,7 @@ function Dashboard() {
                     uploadingFiles={uploadingFiles}
                     activeTab={activeTab}
                     onDelete={currentDeleteAction}
-                    onRestore={handleRestore}
+                    onRestore={handleRestoreFile}
                     onDownload={handleDownload}
                     onShare={handleShare}
                     onVersioning={handleVersioning}

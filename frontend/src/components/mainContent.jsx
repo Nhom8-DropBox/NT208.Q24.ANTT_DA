@@ -48,7 +48,6 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                 {/* Lấy files từ database */}
                 <section className="section">
                     <div className="file-list">
-
                         {data?.files?.map((file) => (
                             <Files
                                 fileId={file.id}

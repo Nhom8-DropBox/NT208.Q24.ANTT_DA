@@ -1,14 +1,12 @@
 import '../styles/file.css';
 import { useToggle } from '../hooks/useToggle';
 import { useClickOutSide } from '../hooks/useClickOutSide'; //
-import { useRestoreFile } from '../hooks/useRestoreFile';
 import { useRef } from 'react';
 
 function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, activeTab, onRestore, onDownload, onShare, onVersioning }) {
     const { isOpen, toggle, close } = useToggle(false);
 
     const menuRef = useRef(null);
-    const { handleRestoreFile } = useRestoreFile();
     useClickOutSide(menuRef, close);
 
     const handleMenuClick = (e) => {
@@ -35,7 +33,7 @@ function FileBar({ ID, Name, Owner, Date, Size, Icon, onDelete, activeTab, onRes
                         {activeTab === 'trash' ? (
 
                             <>
-                                <button className="menu-item" onClick={() => { close(); handleRestoreFile(ID, Name); }}>
+                                <button className="menu-item" onClick={() => { close(); onRestore(ID, Name); }}>
                                     <span className="material-symbols-rounded">restore_from_trash</span> Khôi phục
                                 </button>
                                 <button className="menu-item text-danger" onClick={() => { close(); onDelete(ID); }}>

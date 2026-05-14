@@ -1,6 +1,6 @@
 // Logic xử lý upload file từ lúc bấm Button New bên sidebar tới gởi tín hiệu tới backend và các componenet khác
 // import vào dashboard để có thể truyền vào cả sidebar và maincontent - sidebar là nơi kích hoạt isUploading, maincontent dựa vao đó mà hiện thị ô uploadfile và hiển thị các file đã upload 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import axios from 'axios';
 import { fetchWithAuth } from '../utils/api';
 
@@ -9,6 +9,22 @@ export const useFileUpload = (onUploadSuccess) => {
     const [uploadingFiles, setUploadingFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const abortControllers = useRef({});
+
+    // Cảnh báo khi người dùng nhấn F5 hoặc tắt tab lúc đang tải lên
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            const hasUploadingFiles = uploadingFiles.some(f => f.status === 'uploading');
+            if (hasUploadingFiles) {
+                e.preventDefault();
+                e.returnValue = ''; // Bắt buộc phải có dòng này để trình duyệt hiện popup cảnh báo
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [uploadingFiles]);
 
     const handleTrigger = () => {
         if (fileInputRef.current) {
