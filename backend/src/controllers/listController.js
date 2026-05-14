@@ -613,6 +613,44 @@ const listController = {
                 message: "Bad Server"
             });
         }
+    },
+
+    deleteVersion: async (req, res) => {
+        const fileId = req.params.id;
+        const versionNo = req.params.versionNo;
+        const userId = req.user.userID;
+
+        try {
+        const fileResult = await pool.query(
+            `SELECT id, owner_id, deleted_at
+            FROM files
+            WHERE id = $1`,
+            [fileId]
+        );
+
+        const versionResult = await pool.query(
+            `SELECT id, file_id, version_no, s3_key
+            FROM file_versions
+            WHERE file_id = $1 AND version_no = $2`,
+            [fileId, versionNo]
+        );
+        // Đếm tổng số version
+
+        const countResult = await pool.query(
+            `SELECT COUNT(*) AS total
+            FROM file_versions
+            WHERE file_id = $1`,
+            [fileId]
+        );
+
+        
+
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({
+            message: "Bad Server"
+            });
+        }
     }
 
 

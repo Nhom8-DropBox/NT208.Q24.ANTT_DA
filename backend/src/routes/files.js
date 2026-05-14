@@ -32,5 +32,8 @@ router.post("/:id/versions/:versionNo/restore", listController.restoreVersion);
 router.post("/:id/restore" , recycleController.restore );
 router.delete("/:id/permanent", recycleController.deleteForever);
 
+//delete version
+router.delete("/:id/versions/:versionNo", listController.deleteVersion);
+
 
 export default router;
