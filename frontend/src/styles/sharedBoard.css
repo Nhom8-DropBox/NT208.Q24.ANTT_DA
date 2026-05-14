@@ -129,6 +129,12 @@ input:focus {
     box-shadow: var(--shadow-sm);
     transition: var(--transition-fast);
     margin-top: 10px;
+
+}
+
+.SharedContainer .link-name {
+    text-overflow: ellipsis;
+    max-width: 400px;
 }
 
 .SharedContainer .btn-create:hover {

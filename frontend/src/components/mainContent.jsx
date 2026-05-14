@@ -5,13 +5,19 @@ import ProfilePopUp from "./profile-popup.jsx";
 import UploadBoard from "./uploadBoard.jsx";
 import '../styles/mainContent.css';
 import LinksBoard from "./linksBoard.jsx";
-// import UploadFiles from "./uploading-files.jsx";
-// import { use, useState } from "react";
+import { useProfile } from "../hooks/useProfile.js";
+import { getInitials } from "../utils/getInitial.js";
+import { useShareFile } from "../hooks/useShareFile.jsx";
 
 
 function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onRestore, onDownload, onShare, onVersioning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose }) {
     const { isOpen: isLinksOpen, open: openLinks, close: closeLinks } = useToggle();
     const { isOpen: isProfileOpen, open: openProfile, close: closeProfile } = useToggle();
+    const { name, email } = useProfile();
+    let profileName = getInitials(name);
+
+    const { links } = useShareFile();
+
     return (
         <main className="main-content">
 
@@ -24,25 +30,25 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
 
                 <div className="header-actions">
                     <IconBtn icon="offline_pin" title="Offline preview" onClick={openLinks} />
-                    <IconBtn icon="help" title="Help" />
-                    {IconBtn({ icon: 'settings', title: 'Settings', onClick: () => { } })}
+                    {/* <IconBtn icon="help" title="Help" />
+                    {IconBtn({ icon: 'settings', title: 'Settings', onClick: () => { } })} */}
                     <div className="profile-pic" onClick={openProfile}>
-                        <span>AN</span>
+                        <span>{profileName}</span>
 
                     </div>
-                    <ProfilePopUp isOpen={isProfileOpen} onClose={closeProfile} progress={data?.progress} />
-                    {isLinksOpen && <LinksBoard onClose={closeLinks} />}
+                    <ProfilePopUp isOpen={isProfileOpen} onClose={closeProfile} progress={data?.progress} files={data?.length} name={name} email={email} />
+                    {isLinksOpen && <LinksBoard onClose={closeLinks} links={links} />}
                 </div>
             </header>
 
             <div className="content-board">
                 <h1>
-                    {activeTab === 'trash' ? 'Hello I am your Trash Can' : 'Welcome Back, An!'}
+                    {activeTab === 'trash' ? 'Hello I am your Trash Can' : `Welcome Back, ${name}!`}
                 </h1>
                 {/* Lấy files từ database */}
                 <section className="section">
                     <div className="file-list">
-                        
+
                         {data?.files?.map((file) => (
                             <Files
                                 fileId={file.id}

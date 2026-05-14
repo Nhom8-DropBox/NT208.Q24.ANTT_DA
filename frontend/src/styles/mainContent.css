@@ -39,7 +39,7 @@
     padding: 16px 32px;
     border-bottom: 3px solid var(--border-color);
     background: var(--bg-primary);
-    z-index: 10;
+    z-index: 1111;
 }
 
 .search-bar {
@@ -57,7 +57,7 @@
 
 .search-bar:focus-within {
     transform: translateY(-2px) translateX(-2px);
-    box-shadow: var(--shadow-md);
+    /* box-shadow: var(--shadow-md); */
     background-color: var(--accent-light);
 }
 
@@ -71,10 +71,13 @@
     font-weight: 600;
     color: var(--text-primary);
     outline: none;
+
 }
 
 .search-bar input::placeholder {
     color: var(--text-secondary);
+    border: none;
+
 }
 
 .header-actions {
@@ -106,6 +109,7 @@
     transform: translateY(-2px) translateX(-2px);
     background: var(--text-primary);
 }
+
 .content-board {
     padding: 32px;
     flex-grow: 1;

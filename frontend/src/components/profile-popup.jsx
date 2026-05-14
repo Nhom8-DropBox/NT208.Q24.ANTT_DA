@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useClickOutSide } from '../hooks/useClickOutSide';
 
-function ProfilePopUp({ isOpen, onClose, progress }) {
+function ProfilePopUp({ isOpen, onClose, progress, files, name, email }) {
 
     const popupRef = useRef(null);
     const navigate = useNavigate();
@@ -51,7 +51,7 @@ function ProfilePopUp({ isOpen, onClose, progress }) {
                             <span>SakuraCloud</span>
                         </div>
 
-                        <div className="title">Hi, An!</div>
+                        <div className="title">Hi, {name}!</div>
 
                         <button className="logout" onClick={handleLogout}>LOG OUT</button>
 
@@ -59,11 +59,11 @@ function ProfilePopUp({ isOpen, onClose, progress }) {
                         <div className="info-box">
                             <div className="info-item">
                                 <span className="material-symbols-rounded">mail</span>
-                                <span>atm@sakura.cloud</span>
+                                <span>{email}</span>
                             </div>
                             <div className="info-item">
                                 <span className="material-symbols-rounded">folder</span>
-                                <span>142 Files Uploaded</span>
+                                <span>{files} Files Uploaded</span>
                             </div>
 
                             <hr />
