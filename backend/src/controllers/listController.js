@@ -261,10 +261,16 @@ const listController = {
 
         try {
             const trashResult = await pool.query(
-                `SELECT id, name, mime_type, deleted_at, created_at, updated_at
-            FROM files
-            WHERE owner_id = $1 AND deleted_at IS NOT NULL
-            ORDER BY deleted_at DESC`, // Sắp xếp file mới xóa lên đầu
+                `SELECT f.id, f.name, f.mime_type, f.deleted_at, f.created_at, f.updated_at, f.deleted_at
+                FROM files f
+                JOIN file_versions fv ON fv.file_id = f.id
+                WHERE f.owner_id = $1 AND f.deleted_at IS NOT NULL
+                AND fv.version_no = (
+                    SELECT MAX(fv2.version_no)
+                    FROM file_versions fv2
+                    WHERE fv2.file_id = f.id
+                )
+                ORDER BY f.deleted_at DESC`, // Sắp xếp file mới xóa lên đầu
                 [userID]
             );
 
@@ -282,6 +288,7 @@ const listController = {
                 name: file.name,
                 mimeType: file.mime_type,
                 deletedAt: file.deleted_at,
+                sizeBytes: file.size_bytes
             }));
 
             return res.status(200).json({
