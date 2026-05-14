@@ -1,5 +1,7 @@
 import pool from '../db.js';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+dotenv.config();
 import { GetDownloadURL } from '../s3.js';
 
 const shareController = {
@@ -24,7 +26,7 @@ const shareController = {
             );
             res.status(201).json({
                 token,
-                url: `http://localhost:5173/download?token=${token}`
+                url: `${process.env.FE_URL}/download?token=${token}`
             });
         }
         catch (err)
