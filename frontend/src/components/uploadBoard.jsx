@@ -1,7 +1,7 @@
 import '../styles/upload.css'
 import UploadFiles from './uploading-files';
 import { useState } from 'react';
-function UploadBoard({ files = [], onPause, onResume, onCancel, onClose}) {
+function UploadBoard({ files = [], onPause, onResume, onCancel, onClose }) {
     const [isExpanded, setIsExpanded] = useState(true); // tạo state để quản lý đóng mở
 
     const handleCloseAll = () => {
@@ -26,22 +26,22 @@ function UploadBoard({ files = [], onPause, onResume, onCancel, onClose}) {
             onClose();
         }
     };
-    
+
     return (
-        <div className={`uploadContainer ${isExpanded ? '' : 'collapsed'}`}> {}
+        <div className={`uploadContainer ${isExpanded ? '' : 'collapsed'}`}> { }
             <div className="sparkle s1">✦</div>
             <div className="sparkle s2">✦</div>
             <div className="sparkle s3">✦</div>
             <div className="upload-header">
                 <span>Uploading {files.length || 1} item...</span>
-                <div className="header-actions"> 
+                <div className="header-actions">
                     {/* Thêm sự kiện onClick để đảo ngược trạng thái */}
-                    <span className="material-symbols-rounded" 
+                    <span className="material-symbols-rounded"
                         style={{ cursor: 'pointer', transform: isExpanded ? 'rotate(0deg)' : 'rotate(180deg)', transition: '0.5s' }}
                         onClick={() => setIsExpanded(!isExpanded)}>
                         expand_more
                     </span>
-                    <span className="material-symbols-rounded" 
+                    <span className="material-symbols-rounded"
                         style={{ cursor: 'pointer' }}
                         onClick={handleCloseAll}>
                         close
@@ -51,6 +51,15 @@ function UploadBoard({ files = [], onPause, onResume, onCancel, onClose}) {
 
             <div className="expand-wrapper">
                 <div className="outer-border">
+                    <UploadFiles
+                        key={2}
+                        fileName={"Secret.txt"}
+                        progress={20}
+                        status={"uploading"}
+                        onPause={() => onPause(2)}
+                        onResume={() => onResume(2)}
+                        onCancel={() => onCancel(2)}
+                    />
                     {files.map((file) => (
                         <UploadFiles
                             key={file.id}

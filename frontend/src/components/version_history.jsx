@@ -16,9 +16,10 @@ export default function VersionHistory() {
 
 	const [versions, setVersions] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [refreshTrigger, setRefreshTrigger] = useState(0);
 
 	const { handleVersionDownloadUrl } = useDownloadFile();
-	const { handleRestore } = useRestoreFile();
+	const { handleRestore } = useRestoreFile(() => setRefreshTrigger(prev => prev + 1));
 	const { handleDeleteVersion } = useDeleteFile();
 
 	useEffect(() => {
@@ -44,7 +45,7 @@ export default function VersionHistory() {
 			}
 		};
 		getVersions();
-	}, [fileID]);
+	}, [fileID, refreshTrigger]);
 
 	// chuẩn hoá time
 	const formatDate = (dateString) => {

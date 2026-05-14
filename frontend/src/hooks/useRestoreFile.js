@@ -1,7 +1,7 @@
 // hooks/useRestoreFile.js
 import { fetchWithAuth } from "../utils/api";
 
-export const useRestoreFile = (setData) => {
+export const useRestoreFile = (onSuccess) => {
 
     const handleRestore = async (fileId, versionNo) => {
         try {
@@ -16,7 +16,7 @@ export const useRestoreFile = (setData) => {
 
             if (response && response.ok) {
                 alert(`Đã khôi phục thành công về bản V${versionNo}`);
-                window.location.reload();
+                if (onSuccess) onSuccess();
             }
             else {
                 const errorData = await response.json();
@@ -41,12 +41,7 @@ export const useRestoreFile = (setData) => {
                     const result = await res.json();
                     if (result.success) {
                         alert("Khôi phục thành công");
-                        if (setData) {
-                            setData(prevData => ({
-                                ...prevData,
-                                files: prevData.files?.filter(file => file.id !== fileId) || []
-                            }));
-                        }
+                        if (onSuccess) onSuccess();
                     }
                     else {
                         alert("Khôi phục thất bại")

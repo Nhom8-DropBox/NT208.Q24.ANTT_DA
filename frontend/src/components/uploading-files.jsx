@@ -19,7 +19,10 @@ function UploadFiles({ fileName, progress, status, onPause, onResume, onCancel }
         {/* Đang upload */}
         {status === 'uploading' && (
           isHovered ? (
-            <button className="Operation-btn pause-btn" onClick={onPause} title="Tạm dừng">
+            <button className="Operation-btn1 pause-btn" onClick={(e) => {
+              e.stopPropagation();
+              onPause();
+            }} title="Tạm dừng">
               <span className="material-symbols-rounded">pause</span>
             </button>
           ) : (
@@ -33,11 +36,11 @@ function UploadFiles({ fileName, progress, status, onPause, onResume, onCancel }
         {status === 'stopped' && (
           isHovered ? (
             <div style={{ display: 'flex', gap: '4px' }}>
-              <button className="Operation-btn resume-btn" onClick={onResume} title="Tiếp tục">
-                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>play_arrow</span>
+              <button className="Operation-btn1" onClick={onResume} title="Tiếp tục">
+                <span className="material-symbols-rounded" style={{ fontSize: '30px' }}>play_arrow</span>
               </button>
-              <button className="Operation-btn cancel-btn" onClick={onCancel} title="Hủy bỏ" style={{ color: 'var(--text-tertiary)' }}>
-                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>close</span>
+              <button className="Operation-btn1" onClick={onCancel} title="Hủy bỏ" style={{ color: 'var(--text-tertiary)' }}>
+                <span className="material-symbols-rounded" style={{ fontSize: '30px', color: 'pink' }}>close</span>
               </button>
             </div>
           ) : (
@@ -50,11 +53,11 @@ function UploadFiles({ fileName, progress, status, onPause, onResume, onCancel }
         )}
 
         {status === 'success' && (
-          <span className="material-symbols-rounded" style={{ color: 'green', fontSize: '18px' }}>done</span>
+          <span className="material-symbols-rounded" style={{ color: 'green', fontSize: '30px' }}>done</span>
         )}
 
         {status === 'error' && (
-          <span className="material-symbols-rounded" style={{ color: 'red', fontSize: '18px' }}>error</span>
+          <span className="material-symbols-rounded" style={{ color: 'red', fontSize: '30px' }}>error</span>
         )}
 
       </div>
