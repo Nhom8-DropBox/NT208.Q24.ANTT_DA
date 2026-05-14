@@ -2,8 +2,8 @@
     position: absolute;
     background-color: var(--retro-bg, #fff0f3);
     border: 3px solid var(--retro-stroke, #42294A);
-    top: 80px;
-    right: 280px;
+    top: calc(100% + 15px);
+    right: 0;
     width: 420px;
     height: auto;
     border-radius: 0;
@@ -129,9 +129,14 @@
     font-family: 'Space Grotesk', sans-serif;
     font-weight: bold;
     white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
+    overflow-x: auto;
     max-width: 180px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.link-name::-webkit-scrollbar {
+    display: none;
 }
 
 .link-url {
@@ -139,8 +144,7 @@
     font-size: 14px;
     font-family: 'Space Grotesk', sans-serif;
     white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
+    overflow-x: auto;
     max-width: 180px;
     text-decoration: none;
     cursor: pointer;
@@ -149,6 +153,12 @@
     border: 1px dashed var(--retro-stroke, #42294A);
     margin-top: 4px;
     transition: background-color 0.1s;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.link-url::-webkit-scrollbar {
+    display: none;
 }
 
 .link-url:hover {

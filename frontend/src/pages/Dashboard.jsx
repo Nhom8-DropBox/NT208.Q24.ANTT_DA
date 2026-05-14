@@ -18,7 +18,7 @@ function Dashboard() {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const { handleDelete, handleDeletePermanently } = useDeleteFile(setData);
-    const { handleRestore } = useRestoreFile(setData);
+    const { handleRestore, handleRestoreFile } = useRestoreFile(setData);
     const { handleDownload } = useDownloadFile();
     const { handleShare } = useShareFile();
     const { handleVersioning } = useFileVersioning(); // 
@@ -108,7 +108,7 @@ function Dashboard() {
                     uploadingFiles={uploadingFiles}
                     activeTab={activeTab}
                     onDelete={currentDeleteAction}
-                    onRestore={handleRestore}
+                    onRestore={handleRestoreFile}
                     onDownload={handleDownload}
                     onShare={handleShare}
                     onVersioning={handleVersioning}

@@ -114,6 +114,7 @@
     padding: 32px;
     flex-grow: 1;
     background: var(--bg-surface);
+    overflow-y: auto;
 }
 
 h1 {

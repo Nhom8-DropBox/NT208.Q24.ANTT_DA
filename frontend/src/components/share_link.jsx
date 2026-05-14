@@ -33,14 +33,6 @@ export default function ShareBoard() {
 					</h2>
 
 					<div className="form-group">
-						<label htmlFor="role">Quyền truy cập (Role)</label>
-						<select id="role" value={role} onChange={(e) => setRole(e.target.value)}>
-							<option value="view">View Only</option>
-							<option value="edit">Edit</option>
-						</select>
-					</div>
-
-					<div className="form-group">
 						<label htmlFor="expiry">Thời hạn (Expiry)</label>
 						<select id="expiry" value={expiry} onChange={(e) => setExpiry(e.target.value)}>
 							<option value="1h">1 Giờ</option>
