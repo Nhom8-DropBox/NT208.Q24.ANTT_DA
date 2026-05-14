@@ -42,7 +42,7 @@ const dashboard = {
             );
             if (result.rows.length === 0)
             {
-                return res.status(401).json({message: "Mã code không hợp lệ"});
+                return res.status(400).json({message: "Mã code không hợp lệ"});
             }
             const promo = result.rows[0];
             await pool.query(
