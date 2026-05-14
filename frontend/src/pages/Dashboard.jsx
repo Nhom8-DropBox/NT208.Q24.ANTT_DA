@@ -18,7 +18,7 @@ function Dashboard() {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const { handleDelete, handleDeletePermanently } = useDeleteFile(setData);
-    const { handleRestore } = useRestoreFile(setData);
+    const { handleRestore, handleRestoreFile } = useRestoreFile(setData);
     const { handleDownload } = useDownloadFile();
     const { handleShare } = useShareFile();
     const { handleVersioning } = useFileVersioning(); // 
@@ -66,6 +66,17 @@ function Dashboard() {
         setRefreshTrigger(prev => prev + 1);
     };
 
+    const handleSearch = async (keyword) => {
+        try {
+            const url = keyword ? `/files?search=${encodeURIComponent(keyword)}` : '/files';
+            const response = await fetchWithAuth(url);
+            const result = await response.json();
+            setData(prev => ({ ...prev, files: result.files || [] }));
+        } catch (err) {
+            console.error("Lỗi search:", err);
+        }
+    };
+
     const {
         fileInputRef,
         uploadingFiles,
@@ -97,7 +108,7 @@ function Dashboard() {
                     uploadingFiles={uploadingFiles}
                     activeTab={activeTab}
                     onDelete={currentDeleteAction}
-                    onRestore={handleRestore}
+                    onRestore={handleRestoreFile}
                     onDownload={handleDownload}
                     onShare={handleShare}
                     onVersioning={handleVersioning}
@@ -105,6 +116,7 @@ function Dashboard() {
                     onResumeUpload={resumeUpload}
                     onRemoveUpload={removeUpload}
                     onClose={onClose}
+                    onSearch={handleSearch}
                 />
             </div>
 

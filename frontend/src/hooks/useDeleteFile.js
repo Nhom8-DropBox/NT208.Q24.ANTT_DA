@@ -2,22 +2,27 @@
 import { fetchWithAuth } from "../utils/api";
 
 export const useDeleteFile = (setData) => {
-    
+
     // xóa mềm (chuyển vào trash)
     const handleDelete = async (fileId) => {
         if (!window.confirm("Bạn có chắc muốn đưa file này vào thùng rác không?")) return;
 
         try {
             const response = await fetchWithAuth(`/files/${fileId}`, {
-                method: 'DELETE' 
+                method: 'DELETE'
             });
 
             if (!response.ok) throw new Error("Lỗi khi xóa file!");
 
-            setData(prevData => ({
-                ...prevData,
-                files: prevData.files?.filter(file => file.id !== fileId) || []
-            }));
+            alert("Đã chuyển vào thùng rác!");
+            setData(prevData => {
+                const newFiles = prevData.files?.filter(file => file.id !== fileId) || [];
+                return {
+                    ...prevData,
+                    files: newFiles,
+                    length: newFiles.length
+                };
+            });
 
         } catch (error) {
             alert(error.message);
@@ -30,21 +35,26 @@ export const useDeleteFile = (setData) => {
 
         try {
             const response = await fetchWithAuth(`/files/${fileId}/permanent`, {
-                method: 'DELETE' 
+                method: 'DELETE'
             });
 
             if (!response.ok) throw new Error("Lỗi khi xóa vĩnh viễn file!");
 
-            setData(prevData => ({
-                ...prevData,
-                files: prevData.files?.filter(file => file.id !== fileId) || []
-            }));
+            alert("Đã xoá vĩnh viễn thành công!");
+            setData(prevData => {
+                const newFiles = prevData.files?.filter(file => file.id !== fileId) || [];
+                return {
+                    ...prevData,
+                    files: newFiles,
+                    length: newFiles.length
+                };
+            });
 
         } catch (error) {
             alert(error.message);
         }
     };
-    
+
     // Trả về cả 2 hàm để Component có thể dùng
     return { handleDelete, handleDeletePermanently };
 };

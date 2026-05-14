@@ -83,7 +83,15 @@
     font-size: 36px;
     color: var(--text-primary);
     margin-bottom: 12px;
-    word-break: break-all;
+    white-space: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.DownloadContainer .file-name::-webkit-scrollbar {
+    display: none;
 }
 
 .DownloadContainer .file-size {

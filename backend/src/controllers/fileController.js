@@ -55,7 +55,7 @@ const fileController = {
 
             const result = await pool.query(
                 `INSERT INTO upload_sessions (owner_id, file_id, filename, mime_type, s3_upload_id, s3_key, chunk_size, status, expires_at )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 RETURNING id `,
                 [userId, null, filename, mimeType, uploadId, s3Key, chunkSize, 'pending', expiresAt]
             );
