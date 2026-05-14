@@ -1,4 +1,4 @@
-function VersionHolder({ VerNo, VerCreate, onDownload, onRestore }) {
+function VersionHolder({ VerNo, VerCreate, isCurrent, onDownload, onRestore }) {
     return (
         <div className="timeline-item">
             <div className="timeline-dot" style={{ background: "var(--bg-surface)" }}></div>
@@ -10,11 +10,13 @@ function VersionHolder({ VerNo, VerCreate, onDownload, onRestore }) {
                 <button className="btn" onClick={onDownload}>
                     <span className="material-symbols-rounded" style={{ fontSize: "18px" }}>download</span> Tải về
                 </button>
-                <button
-                    className="btn btn-restore"
-                    onClick={onRestore}>
-                    <span className="material-symbols-rounded" style={{ fontSize: '18px', color: 'red' }}>history</span> Khôi phục
-                </button>
+                {!isCurrent && (
+                    <button
+                        className="btn btn-restore"
+                        onClick={onRestore}>
+                        <span className="material-symbols-rounded" style={{ fontSize: '18px', color: 'red' }}>history</span> Khôi phục
+                    </button>
+                )}
             </div>
         </div>
     )

@@ -76,6 +76,7 @@ export default function VersionHistory() {
 										// Nếu là isCurrent -> (Current), ngược lại nếu là isOriginal -> (Origin), còn lại -> Rỗng
 										VerNo={`V${ver.versionNo} ${ver.isCurrent ? '(Current)' : (ver.isOriginal ? '(Origin)' : '')}`}
 										VerCreate={formatDate(ver.createdAt)}
+										isCurrent={ver.isCurrent}
 										onDownload={() => handleVersionDownloadUrl(fileID, ver.versionNo, fileName)}
 										onRestore={() => handleRestore(fileID, ver.versionNo)}
 									/>
