@@ -9,7 +9,6 @@ import { useProfile } from "../hooks/useProfile.js";
 import { getInitials } from "../utils/getInitial.js";
 import { useShareFile } from "../hooks/useShareFile.jsx";
 
-
 function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, onRestore, onDownload, onShare, onVersioning, onCancelUpload, onResumeUpload, onRemoveUpload, onClose }) {
     const { isOpen: isLinksOpen, open: openLinks, close: closeLinks } = useToggle();
     const { isOpen: isProfileOpen, open: openProfile, close: closeProfile } = useToggle();
@@ -29,7 +28,10 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
                 </div>
 
                 <div className="header-actions">
-                    <IconBtn icon="offline_pin" title="Offline preview" onClick={openLinks} />
+                    <div style={{ position: 'relative' }}>
+                        <IconBtn icon="offline_pin" title="Offline preview" onClick={openLinks} />
+                        {isLinksOpen && <LinksBoard onClose={closeLinks} links={links} />}
+                    </div>
                     {/* <IconBtn icon="help" title="Help" />
                     {IconBtn({ icon: 'settings', title: 'Settings', onClick: () => { } })} */}
                     <div className="profile-pic" onClick={openProfile}>
@@ -37,7 +39,6 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
 
                     </div>
                     <ProfilePopUp isOpen={isProfileOpen} onClose={closeProfile} progress={data?.progress} files={data?.length} name={name} email={email} />
-                    {isLinksOpen && <LinksBoard onClose={closeLinks} links={links} />}
                 </div>
             </header>
 
@@ -51,6 +52,7 @@ function MainContent({ data, isUploading, uploadingFiles, activeTab, onDelete, o
 
                         {data?.files?.map((file) => (
                             <Files
+                                key={file.id}
                                 fileId={file.id}
                                 ID={file.id}
                                 Name={file.name}

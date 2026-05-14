@@ -1,9 +1,17 @@
 import '../styles/linkBoard.css'
 import LinksItem from './linksItem'
+import { useRef } from 'react'
+import { useClickOutSide } from '../hooks/useClickOutSide'
 
 export default function LinksBoard({ onClose, links }) {
+    const boardRef = useRef(null);
+
+    useClickOutSide(boardRef, () => {
+        if (onClose) onClose();
+    });
+
     return (
-        <div className="linkWrapper">
+        <div className="linkWrapper" ref={boardRef}>
             <div className="linkPopupContainer">
                 <div className="sparkle s1">✦</div>
                 <div className="sparkle s2">✦</div>
