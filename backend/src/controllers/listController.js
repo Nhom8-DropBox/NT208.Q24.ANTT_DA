@@ -647,7 +647,7 @@ const listController = {
         const version = versionResult.rows[0]
 
         const maxResult = await pool.query(
-            `SELECT MAX(version_no)
+            `SELECT MAX(version_no) AS max_version
             FROM file_versions
             WHERE file_id = $1`,
             [fileId]
@@ -655,7 +655,7 @@ const listController = {
 
         if (!version) return res.status(404).json({message: "Khong tim thay version" });
         
-        if (version == maxResult.rows[0].MAX ) return res.status(400).json({message: "Khong duoc xoa version latest" });
+        if (version.version_no == maxResult.rows[0].max_version ) return res.status(400).json({message: "Khong duoc xoa version latest" });
 
 
         //check xem ai dùng chung s3_key không
