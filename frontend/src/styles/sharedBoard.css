@@ -133,8 +133,15 @@ input:focus {
 }
 
 .SharedContainer .link-name {
-    text-overflow: ellipsis;
-    max-width: 400px;
+    white-space: nowrap;
+    overflow-x: auto;
+    max-width: 300px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.SharedContainer .link-name::-webkit-scrollbar {
+    display: none;
 }
 
 .SharedContainer .btn-create:hover {

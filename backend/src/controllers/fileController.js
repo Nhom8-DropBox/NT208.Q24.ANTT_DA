@@ -55,7 +55,7 @@ const fileController = {
 
             const result = await pool.query(
                 `INSERT INTO upload_sessions (owner_id, file_id, filename, mime_type, s3_upload_id, s3_key, chunk_size, status, expires_at )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 RETURNING id `,
                 [userId, null, filename, mimeType, uploadId, s3Key, chunkSize, 'pending', expiresAt]
             );
@@ -488,43 +488,6 @@ const fileController = {
         }
     },
 
-    getUploadSessionStatus: async (req, res) => {
-        const { sessionId } = req.params;
-        const userId = req.user.userID;
-
-        try {
-            const sessionResult = await pool.query(
-                `SELECT * FROM upload_sessions WHERE id = $1`,
-                [sessionId]
-            );
-            const session = sessionResult.rows[0];
-
-            if (!session)
-                return res.status(404).json({ message: "Không tìm thấy session" });
-            if (session.owner_id !== userId)
-                return res.status(403).json({ message: "Không có quyền" });
-
-            const partsResult = await pool.query(
-                `SELECT part_number, size_bytes FROM upload_parts 
-                WHERE upload_session_id = $1 ORDER BY part_number ASC`,
-                [sessionId]
-            );
-
-            return res.status(200).json({
-                sessionId: session.id,
-                status: session.status,
-                fileID: session.file_id,
-                filename: session.filename,
-                uploadedParts: partsResult.rows.map(r => r.part_number),
-                chunkSize: session.chunk_size,
-                expiresAt: session.expires_at
-            });
-        } catch (err) {
-            console.log(err);
-            return res.status(500).json({ message: "Lỗi server" });
-        }
-    },
-
     abortMultipartUpload: async (req, res) => {
         const { sessionId } = req.body;
         const userId = req.user.userID;
@@ -546,7 +509,7 @@ const fileController = {
             await abortUpload({ key: session.s3_key, uploadId: session.s3_upload_id });
 
             await pool.query(
-                `UPDATE upload_sessions SET status = 'aborted' WHERE id = $1`,
+                `DELETE FROM upload_sessions WHERE id = $1`,
                 [sessionId]
             );
 

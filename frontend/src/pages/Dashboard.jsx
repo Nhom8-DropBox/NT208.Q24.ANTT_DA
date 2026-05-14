@@ -71,6 +71,17 @@ function Dashboard() {
         setRefreshTrigger(prev => prev + 1);
     };
 
+    const handleSearch = async (keyword) => {
+        try {
+            const url = keyword ? `/files?search=${encodeURIComponent(keyword)}` : '/files';
+            const response = await fetchWithAuth(url);
+            const result = await response.json();
+            setData(prev => ({ ...prev, files: result.files || [] }));
+        } catch (err) {
+            console.error("Lỗi search:", err);
+        }
+    };
+
     const {
         fileInputRef,
         uploadingFiles,
@@ -110,6 +121,7 @@ function Dashboard() {
                     onResumeUpload={resumeUpload}
                     onRemoveUpload={removeUpload}
                     onClose={onClose}
+                    onSearch={handleSearch}
                 />
             </div>
 

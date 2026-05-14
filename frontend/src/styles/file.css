@@ -30,6 +30,7 @@
     font-family: 'VT323', monospace;
     font-size: 18px;
     color: var(--text-primary);
+    gap: 16px;
 }
 
 .col-name {
@@ -42,11 +43,18 @@
 }
 
 .file-name {
+    display: block;
     color: var(--text-primary);
     white-space: nowrap;
-    overflow: hidden;
-    max-width: 400px;
-    text-overflow: ellipsis;
+    overflow-x: auto;
+    flex: 1;
+    min-width: 0;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.file-name::-webkit-scrollbar {
+    display: none;
 }
 
 .col-owner {
@@ -81,6 +89,7 @@
     font-weight: 600;
 
     position: relative;
+    gap: 16px;
 }
 
 .list-item.active-menu {

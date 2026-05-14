@@ -613,6 +613,87 @@ const listController = {
                 message: "Bad Server"
             });
         }
+    },
+
+    deleteVersion: async (req, res) => {
+        const fileId = req.params.id;
+        const versionNo = req.params.versionNo;
+        const userId = req.user.userID;
+
+        try {
+        const fileResult = await pool.query(
+            `SELECT id, owner_id, deleted_at
+            FROM files
+            WHERE id = $1`,
+            [fileId]
+        );
+        const file = fileResult.rows[0];
+
+        if (!file) 
+            return res.status(404).json({ message: "Khong tim thay file" });
+        if (file.owner_id !== userId) 
+            return res.status(403).json({ message: "Khong co quyen xoa version" });
+        if (file.deleted_at) 
+            return res.status(400).json({ message: "File da bi xoa" });
+
+
+        const versionResult = await pool.query(
+            `SELECT id, file_id, version_no, s3_key
+            FROM file_versions
+            WHERE file_id = $1 AND version_no = $2`,
+            [fileId, versionNo]
+        );
+
+        const version = versionResult.rows[0]
+
+        const maxResult = await pool.query(
+            `SELECT MAX(version_no) AS max_version
+            FROM file_versions
+            WHERE file_id = $1`,
+            [fileId]
+        );
+
+        if (!version) return res.status(404).json({message: "Khong tim thay version" });
+        
+        if (version.version_no == maxResult.rows[0].max_version ) return res.status(400).json({message: "Khong duoc xoa version latest" });
+
+
+        //check xem ai dùng chung s3_key không
+        const sameKeyResult = await pool.query(
+            `SELECT COUNT(*) AS total
+            FROM file_versions
+            WHERE s3_key = $1 AND id <> $2`,
+            [version.s3_key, version.id]
+        );
+
+        //XÓa rows version
+        await pool.query(
+            `DELETE FROM file_versions
+            WHERE id = $1`,
+            [version.id]
+        );
+        
+
+        const sameKeyCount = Number(sameKeyResult.rows[0].total);
+            if (sameKeyCount === 0) {
+            await deleteObject(version.s3_key);
+        }
+
+
+
+
+
+        return res.status(200).json({
+            fileID: fileId,
+            message: "Da xoa version da chon cua file ",
+        });
+
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({
+            message: "Bad Server"
+            });
+        }
     }
 
 

@@ -86,6 +86,10 @@ export const useFileUpload = (onUploadSuccess) => {
                 })
             });
             const { sessionId, chunkSize, totalParts, uploadedParts = [] } = await Respond.json();
+
+        setUploadingFiles(prev => prev.map(f =>
+            f.id === localFileId ? { ...f, sessionId } : f
+        ));
             //
 
             // Tính toán progress ban đầu dựa vào những phần đã upload (nếu có resume)
@@ -200,7 +204,16 @@ export const useFileUpload = (onUploadSuccess) => {
 
     const removeUpload = (fileId) => {
         cancelUpload(fileId);
-        setUploadingFiles(prev => prev.filter(f => f.id !== fileId));
+        setUploadingFiles(prev => {
+            const file = prev.find(f => f.id === fileId);
+            if (file?.sessionId) {
+                fetchWithAuth('/files/upload/abort', {
+                    method: 'POST',
+                    body: JSON.stringify({ sessionId: file.sessionId })
+                }).catch(() => {});
+            }
+            return prev.filter(f => f.id !== fileId);
+        });
     };
 
     const onClose = () => {

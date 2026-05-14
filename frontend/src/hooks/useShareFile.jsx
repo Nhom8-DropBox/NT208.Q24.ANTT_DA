@@ -90,12 +90,25 @@ export const useShareFile = () => {
 		}
 	}
 
+	const revokeLink = async (linkId) => {
+		try {
+			const response = await fetchWithAuth(`/share-links/${linkId}`, { method: "DELETE" });
+			if (response.ok) {
+				setLinks(prev => prev.filter(l => l.id !== linkId));
+			} else {
+				alert("Không thể huỷ link!");
+			}
+		} catch (err) {
+			console.error("Lỗi revoke link:", err);
+		}
+	};
 
 	return {
 		handleShare,
 		handleCreateShareLink,
 		links,
 		handleCopy,
+		revokeLink,
 		role,
 		setRole,
 		expiry,

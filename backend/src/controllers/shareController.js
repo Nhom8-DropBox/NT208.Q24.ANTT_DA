@@ -40,7 +40,7 @@ const shareController = {
         try
         {
             const result = await pool.query(
-                "select sl.*, f.name file_name from share_links sl join files f on sl.file_id = f.id where f.owner_id = $1 order by sl.created_at desc",
+                "select sl.*, f.name file_name from share_links sl join files f on sl.file_id = f.id where f.owner_id = $1 and sl.revoked_at is null order by sl.created_at desc",
                 [userID]
             );
             res.json(result.rows);
