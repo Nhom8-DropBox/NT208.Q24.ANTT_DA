@@ -1,5 +1,5 @@
 import '../styles/linkBoard.css'
-export default function LinksItem({ linkName, url }) {
+export default function LinksItem({ linkName, url, onRevoke }) {
     return (
         <div className="LinkManager">
             <div className="link-info">
@@ -17,6 +17,9 @@ export default function LinksItem({ linkName, url }) {
                 </button>
                 <button className="Operation-btn" title="Open Link" onClick={() => window.open(url, "_blank")}>
                     <span className="material-symbols-rounded">open_in_new</span>
+                </button>
+                <button className="Operation-btn" title="Huỷ link" onClick={onRevoke} style={{ color: 'var(--danger-color, #e74c3c)' }}>
+                    <span className="material-symbols-rounded">link_off</span>
                 </button>
             </div>
         </div>

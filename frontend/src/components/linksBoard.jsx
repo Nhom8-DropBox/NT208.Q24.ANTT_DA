@@ -2,9 +2,13 @@ import '../styles/linkBoard.css'
 import LinksItem from './linksItem'
 import { useRef } from 'react'
 import { useClickOutSide } from '../hooks/useClickOutSide'
+import { useShareFile } from '../hooks/useShareFile'
 
-export default function LinksBoard({ onClose, links }) {
+const FE_URL = import.meta.env.VITE_FE_URL || window.location.origin;
+
+export default function LinksBoard({ onClose }) {
     const boardRef = useRef(null);
+    const { links, revokeLink } = useShareFile();
 
     useClickOutSide(boardRef, () => {
         if (onClose) onClose();
@@ -31,7 +35,8 @@ export default function LinksBoard({ onClose, links }) {
                             <LinksItem
                                 key={link.id}
                                 linkName={link.file_name}
-                                url={`http://localhost:5173/download?token=${link.token_uuid}`}
+                                url={`${FE_URL}/download?token=${link.token_uuid}`}
+                                onRevoke={() => revokeLink(link.id)}
                             />
                         ))
                     ) : (
